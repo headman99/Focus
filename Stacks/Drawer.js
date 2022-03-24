@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React,{useState,useEffect} from 'react'
+import React, { useState, useEffect } from 'react'
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Home from '../screens/Home'
 import Chat from '../screens/Chat'
@@ -12,22 +12,25 @@ export const userInformationsContext = React.createContext();
 
 const Drawer = () => {
     const Drawer = createDrawerNavigator();
-    const [userInfo,setUserInfo] = useState();
+    const [userInfo, setUserInfo] = useState();
 
-    const userInformations = async () => {
-        const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
-        console.log(userInfo);
-    };
 
-    useEffect( async ()=>{
-        console.log("eseguito")
-        const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
-        const promise = await Promise.resolve(userInfo)
-        setUserInfo(promise)
-    },[auth.currentUser])
+    useEffect(/*async*/() => {
+        //necessario farla cosi perchè mettere async lì dove ho commentato non è possibile
+        (async () => {
+            console.log("eseguito")
+            const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
+            const promise = await Promise.resolve(userInfo)
+            setUserInfo(promise)
+        })();
+        return ()=>{
+            
+        }
+
+    }, [auth.currentUser])
 
     return (
-        <userInformationsContext.Provider value = {userInfo}>
+        <userInformationsContext.Provider value={userInfo}>
             <Drawer.Navigator initialRouteName="Home">
                 <Drawer.Screen /*options={{headerShown:false}}*/ name="Home" component={Home} />
                 <Drawer.Screen /*options={{headerShown:false}}*/ name="Chat" component={Chat} />

@@ -64,7 +64,9 @@ export async function getUsersBySimilarUsername(database, strSearch) {
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
             id:doc.data().id,
-            username: doc.data().username
+            username: doc.data().username,
+            idDoc : doc.id,
+            avatar: doc.data().avatar
         }))
     }catch(error){
         console.error(error.message)
@@ -84,10 +86,13 @@ export async function getPossibleFriendsBySimilarUsername(database,strSearch,arr
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
             id:doc.data().id,
-            username: doc.data().username
+            username: doc.data().username,
+            idDoc : doc.id,
+            avatar:doc.data().avatar
         }))
     }catch(error){
         console.error(error.message)
         return null
     }
 }
+

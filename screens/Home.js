@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity,LogBox } from 'react-native'
 import React from 'react'
 import { auth } from '../firebase'
 import { signOut } from 'firebase/auth'
 import { useNavigation } from '@react-navigation/native'
 
+LogBox.ignoreLogs(['AsyncStorage has been extracted','Require cycle'])
 
 const Home = () => {
   const navigation = useNavigation()

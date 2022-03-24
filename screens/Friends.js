@@ -26,6 +26,7 @@ import { faMessage } from "@fortawesome/free-solid-svg-icons";
 import { userInformationsContext } from '../Stacks/Drawer';
 
 
+
 const Friends = ({ navigation }) => {
     const [filter, setFilter] = useState('');
     const [friends, setFriends] = useState([]);
@@ -91,21 +92,31 @@ const Friends = ({ navigation }) => {
         console.log(amici)
     }
 
-    useEffect(async () => {
-        const friendsRefPromises = userInfo.data.friendsRef.map(async element => await (await getDoc(element)).data())
-        const friendsDocsDetails = await Promise.all(friendsRefPromises);
-        const arrayAmici = friendsDocsDetails.map(friend => ({
-            id: friend.id,
-            username: friend.username
-        }));
-        setFriends(arrayAmici);
-        setFriendsList(arrayAmici);
+    useEffect(/*async*/() => {
+    //necessario farla cosi perchè mettere async lì dove ho commentato non è possibile
+        (async() => {
+            const friendsRefPromises = userInfo.data.friendsRef.map(async element => await (await getDoc(element)).data())
+            const friendsDocsDetails = await Promise.all(friendsRefPromises);
+            const arrayAmici = friendsDocsDetails.map(friend => ({
+                id: friend.id,
+                username: friend.username,
+                avatar : friend.avatar
+            }));
+            setFriends(arrayAmici);
+            setFriendsList(arrayAmici);
+        })();
+
+        return ()=>{
+
+        }
     }, [])
+
+   
 
     return (
         <View style={styles.container}>
-            <NewFriendWindow pressPlus={pressPlus} setPressPlus={setPressPlus} friends={friends.map(friend=>friend.username)}/>
-            <View style={!pressPlus?[styles.contentContainer]:[styles.contentContainer,{opacity:0.1}]}>
+            <NewFriendWindow pressPlus={pressPlus} setPressPlus={setPressPlus} friends={friends.map(friend => friend.username)} />
+            <View style={!pressPlus ? [styles.contentContainer] : [styles.contentContainer, { opacity: 0.1 }]}>
                 <TextInput
                     style={styles.textInput}
                     onChangeText={filter => setFilter(filter)}
@@ -118,7 +129,7 @@ const Friends = ({ navigation }) => {
                         style={styles.friendlist}
                         data={friendsList}
                         renderItem={({ item }) => (
-                            <FriendListItem item={item} icon={{image:faMessage,size:20}}/>
+                            <FriendListItem item={item} icon={{ image: faMessage, size: 20 }} />
                         )}
                         keyExtractor={(friend) => friend.id}
                     />
@@ -142,8 +153,7 @@ export default Friends
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor:'white',
-        justifyContent:'center',
+        justifyContent: 'center',
     },
     textInput: {
         width: '80%',
@@ -152,26 +162,23 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 10,
         marginTop: '5%',
-        padding: 10
+        padding: 10,
+        backgroundColor:'white'
     },
     mainContent: {
         flex: 1,
         width: '100%',
-
-    }, friendlist: {
-        width: '100%',
-        height: '100%',
+        marginTop:20
     },
     plusContainer: {
         position: 'absolute',
         right: '5%',
         bottom: '5%'
     },
-    contentContainer:{
-        flex:1,
+    contentContainer: {
+        flex: 1,
         justifyContent: 'center',
-        flexDirection:'column',
-        alignItems:'center',
-        
+        flexDirection: 'column',
+        alignItems: 'center',
     }
 })

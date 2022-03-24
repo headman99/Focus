@@ -38,7 +38,7 @@ const Chat = () => {
 
     const onSend = useCallback((message) => {
         //setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
-        const { _id, createdAt, text, user } = message[0]
+        const { _id, createdAt, text, user } = message[0] //il messaggio n-esimo inviato è un array di un solo elemento 
         addDoc(collection(database, 'chats'), {
             _id,
             createdAt,
@@ -50,7 +50,7 @@ const Chat = () => {
     return (
         <GiftedChat
             messages={messages}
-            onSend={message => {console.log(messages.length);onSend(message)}}
+            onSend={message =>onSend(message)}
             user={{
                 _id: auth?.currentUser.email,
                 avatar: 'https://i.pravatar.cc/300'
