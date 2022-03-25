@@ -18,23 +18,22 @@ import FriendListItem from './FriendListItem';
 import { getUsersBySimilarUsername, getPossibleFriendsBySimilarUsername } from '../api';
 import { database } from '../firebase';
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
-import { arrayUnion, doc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { userInformationsContext } from '../Stacks/Drawer';
 
 
-const NewFriendWindow = ({ pressPlus, setPressPlus, friends }) => {
+const NewFriendWindow = ({ pressPlus, setPressPlus, friends, setSelectedItem }) => {
     const [newFriends, setNewFriends] = useState([]);
     const [filter, setFilter] = useState('');
-    const userInfo = React.useContext(userInformationsContext);
 
     const handleFilter = async () => {
         let arrayPromises;
-        if(friends?.length>0){
-             arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends);
-        }else{
-            arrayPromises = await getUsersBySimilarUsername(database,filter);
+        if (friends?.length > 0) {
+            arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends);
+        } else {
+            arrayPromises = await getUsersBySimilarUsername(database, filter);
         }
-            
+
         if (arrayPromises != null) {
             let array = await Promise.all(arrayPromises);
             setNewFriends(array);
@@ -42,15 +41,11 @@ const NewFriendWindow = ({ pressPlus, setPressPlus, friends }) => {
 
     }
 
-    const OnPressAddFriend = async (friendDoc) => {
-        try{
-            const result = await updateDoc(doc(database,"users",userInfo.idDoc),{
-            friendsRef: arrayUnion(friendDoc)
+    const OnPressAddFriend = (item) => {
+        setSelectedItem({
+            item: item,
+            action: 'add'
         });
-            console.log(result) 
-        }catch(error){
-            console.log(error.message())
-        }
     }
 
     if (!pressPlus) {
@@ -64,29 +59,40 @@ const NewFriendWindow = ({ pressPlus, setPressPlus, friends }) => {
             visible={pressPlus}
             onRequestClose={() => {
                 Alert.alert('Modal has now been closed.');
+                setPressPlus(false)
             }}>
             <View style={styles.headerContainer}>
                 <TouchableOpacity style={styles.Xbutton}
-                    onPress={() => setPressPlus(false)}
+                    onPress={() => {
+                        setPressPlus(false)
+                        setFilter('')
+                        setNewFriends([])
+                    }}
                 >
                 </TouchableOpacity>
             </View>
             <SafeAreaView style={styles.content}>
-                <TextInput
-                    style={styles.textInput}
-                    onChangeText={filter => setFilter(filter)}
-                    value={filter}
-                    placeholder='Search'
-                    onEndEditing={handleFilter}
-                />
+                <View
+                    style={{width:'100%',justifyContent:'center',alignItems:'center'}}
+                >
+                    <TextInput
+                        style={styles.textInput}
+                        onChangeText={filter => setFilter(filter)}
+                        value={filter}
+                        placeholder='Search'
+                        onEndEditing={handleFilter}
+                    />
+                </View>
                 <View style={styles.mainContent}>
                     <FlatList
                         style={styles.friendlist}
                         data={newFriends}
                         renderItem={({ item }) => (
                             <FriendListItem item={item}
-                                icon = {{ image: faUserPlus, size: 25 }}
+                                icon={{ image: faUserPlus, size: 25 }}
                                 onPressIcon={OnPressAddFriend}
+                                MultiSelectionVisible={false}
+                                setSelectedItem={setSelectedItem}
                             />
                         )}
                         keyExtractor={(friend) => friend.id}
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
         paddingBottom: '5%',
         flexDirection: 'column',
         justifyContent: 'center',
-        alignItems: 'center'
+
     },
     textInput: {
         width: '80%',
@@ -139,15 +145,16 @@ const styles = StyleSheet.create({
         marginTop: '5%',
         padding: 10,
         borderWidth: 1,
-        backgroundColor:'white'
+        backgroundColor: 'white'
 
     },
     mainContent: {
         flex: 1,
-        marginTop:10
+        marginTop: 10,
+
     },
     friendlist: {
-        flex: 1
+        flex: 1,
     },
 
 })

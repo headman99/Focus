@@ -1,25 +1,47 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image, TouchableHighlight } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, Image, TouchableHighlight, Modal } from 'react-native'
+import React,{useContext} from 'react'
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { database } from '../firebase';
-import {
-    doc, getDoc
-} from 'firebase/firestore'
+import MultiSelection from './MultiSelection';
 
 
 
-const FriendListItem = ({ item, icon, onPressIcon }) => {
+
+
+const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible,setSelectedItem}) => {
     const [changeLayout, setChangeLayout] = React.useState(false);
+    const [isLongPressed, setIsLongPressed] = React.useState(false) //detect if a card is pressed longly
+    const changeStyleTouchable = {
+        opacity: 0.85,
+        backgroundColor: '#287ef7' //azzurrino
+    }
 
     const onPress = async () => {
-        const docFriend = doc(database, "users", item.idDoc);
-        await onPressIcon(docFriend);
+        onPressIcon(item);
         setChangeLayout(true)
+    }
+
+    const handleLongPress = () => {
+        setIsLongPressed(!isLongPressed)
+    }
+
+    const handleDelete = () => {
+        setSelectedItem({
+            item:item,
+            action:'delete'
+        });
     }
 
     return (
         <View style={changeLayout ? [styles.container, { opacity: 0.5 }] : styles.container}>
-            <TouchableHighlight style={styles.TouchableHigh}
+            <MultiSelection
+                show={isLongPressed}
+                setIsLongPressed={setIsLongPressed}
+                visible={MultiSelectionVisible}
+                OnDelete={handleDelete}
+            />
+            <TouchableHighlight
+                style={isLongPressed ? [styles.TouchableHigh, changeStyleTouchable] : styles.TouchableHigh}
+                onLongPress={handleLongPress}
             >
                 <View style={styles.cardContainer}>
                     <View style={styles.imageContainer}>
@@ -54,6 +76,7 @@ const styles = StyleSheet.create({
     container: {
         height: 80,
         width: '100%',
+        
     },
     chatButton: {
         width: 32,
@@ -88,14 +111,13 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         justifyContent: 'center',
     },
-    TouchableHigh:{
+    TouchableHigh: {
         flex: 1,
         borderRadius: 10,
         marginHorizontal: 10,
         marginVertical: 5,
         borderWidth: 1,
         borderColor: '#e0e0e0',
-        elevation: 2,
-        overflow:'hidden'
+        overflow: 'hidden',
     }
 })
