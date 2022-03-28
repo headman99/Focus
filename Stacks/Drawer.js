@@ -4,6 +4,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import Home from '../screens/Home'
 import Chat from '../screens/Chat'
 import Friends from '../screens/Friends';
+import Notifications from '../screens/Notifications';
 import { getUserInformationsByMail } from '../api';
 import { auth, database } from '../firebase';
 
@@ -35,6 +36,7 @@ const Drawer = () => {
                 <Drawer.Screen /*options={{headerShown:false}}*/ name="Home" component={Home} />
                 <Drawer.Screen /*options={{headerShown:false}}*/ name="Chat" component={Chat} />
                 <Drawer.Screen /*options={{headerShown:false}}*/ name="Friends" component={Friends} />
+                <Drawer.Screen /*options={{headerShown:false}}*/ name="Notifications" component={Notifications} />
             </Drawer.Navigator>
         </userInformationsContext.Provider>
     )

@@ -4,7 +4,7 @@ import { auth } from '../firebase'
 import { signOut } from 'firebase/auth'
 import { useNavigation } from '@react-navigation/native'
 
-LogBox.ignoreLogs(['AsyncStorage has been extracted','Require cycle'])
+LogBox.ignoreLogs(['AsyncStorage has been extracted','Require cycle','Setting a timer'])
 
 const Home = () => {
   const navigation = useNavigation()
