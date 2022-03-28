@@ -20,15 +20,13 @@ import { auth, database } from '../firebase';
 import FriendListItem from '../components/FriendListItem';
 import { faMessage } from "@fortawesome/free-solid-svg-icons";
 import { userInformationsContext } from '../Stacks/TabNavigator';
-import { friendsContext } from '../Stacks/FriendsNavigator';
 
 const Friends = () => {
-    const {friends,setFriends} = React.useContext(friendsContext);
+    const {userInfo,friendsField} = React.useContext(userInformationsContext);
     const [filter, setFilter] = useState('');
     //const [friends, setFriends] = useState([]);
     const [selectedItem, setSelectedItem] = useState() //elemento selezionato quando premo a lungo su una card, serve per aggiornare l'array di amici senza dover fare ogni volta nuove richieste
     LogBox.ignoreLogs(["Setting a timer", "AsyncStorage has been extracted from react-native core"])
-    const userInfo = React.useContext(userInformationsContext);
 
     
     const handleDeleteItem = async (item) => {
@@ -45,6 +43,7 @@ const Friends = () => {
 
     useLayoutEffect(() => {
         if (selectedItem) {
+            const {friends,setFriends} = friendsField;
             const { item, action } = selectedItem;
             if (action == 'delete') {
                 setFriends(friends?.filter(friend => friend.username !== item.username))
@@ -56,9 +55,9 @@ const Friends = () => {
 
     const returnFilter = () => {
         if (filter !== '') {
-            return friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase()))
+            return friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase()))
         } else {
-            return friends;
+            return friendsField.friends;
         }
     }
 

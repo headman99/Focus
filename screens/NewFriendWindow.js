@@ -17,13 +17,13 @@ import { database } from '../firebase';
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { userInformationsContext } from '../Stacks/TabNavigator';
-import { friendsContext } from '../Stacks/FriendsNavigator';
+
 
 const NewFriendWindow = () => {
     const [newFriends, setNewFriends] = useState([]);
     const [filter, setFilter] = useState('');
-    const userInfo = React.useContext(userInformationsContext);
-    const { friends, setFriends } = React.useContext(friendsContext);
+    const {userInfo,friendsField} = React.useContext(userInformationsContext);
+    
 
     const addItem = async (item) => {
         try {
@@ -36,11 +36,13 @@ const NewFriendWindow = () => {
     }
 
     const OnPressAddFriend = async (item) => {
+        const {friends,setFriends} = friendsField;
         await addItem(doc(database, 'users', item.idDoc));
         setFriends([...friends,item]);
     }
 
     const handleFilter = async () => {
+        const {friends} = friendsField;
         let arrayPromises;
         if (friends?.length > 0) {
             arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends);
