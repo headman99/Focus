@@ -7,7 +7,8 @@ import { useNavigation } from '@react-navigation/native'
 LogBox.ignoreLogs(['AsyncStorage has been extracted','Require cycle','Setting a timer'])
 
 const Home = () => {
-  const navigation = useNavigation()
+  const navigation = useNavigation();
+  
   const handleSignOut = () => {
     signOut(auth).then(() => {
         navigation.replace("Login")

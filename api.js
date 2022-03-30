@@ -12,9 +12,12 @@ import {
     QueryDocumentSnapshot,
     getDoc,
     QuerySnapshot,
-    limit
+    limit,
+    Timestamp
 
 } from "firebase/firestore";
+import uuid from 'react-native-uuid';
+import { auth } from "./firebase";
 
 /*
 Informazione di un utente dato il suo id del documento
@@ -59,8 +62,9 @@ export async function getUsersBySimilarUsername(database, strSearch) {
     var startcode = strSearch;
     var endcode = strFrontCode + String.fromCharCode(strEndCode.charCodeAt(0) + 1);
     try {
+        const userInfo = await getUserInformationsByMail(database,auth?.currentUser?.email);
         const collectionRef = collection(database, 'users');
-        const q = query(collectionRef, where("username", ">=", startcode),where("username","<" ,endcode),limit(50), orderBy("username"));
+        const q = query(collectionRef, where("username", ">=", startcode),where("username","<" ,endcode),limit(50),where("username","!=",userInfo.data.username),orderBy("username"));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
             id:doc.data().id,
@@ -81,8 +85,9 @@ export async function getPossibleFriendsBySimilarUsername(database,strSearch,arr
     var startcode = strSearch;
     var endcode = strFrontCode + String.fromCharCode(strEndCode.charCodeAt(0) + 1);
     try {
+        const userInfo = await getUserInformationsByMail(database,auth?.currentUser?.email);
         const collectionRef = collection(database, `users`);
-        const q = query(collectionRef, where("username", "not-in", array),where("username", ">=", startcode),where("username","<" ,endcode),limit(50), orderBy("username"));
+        const q = query(collectionRef, where("username", "not-in", array),where("username", ">=", startcode),where("username","<" ,endcode),where("username","!=",userInfo.data.username),limit(50), orderBy("username"));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
             id:doc.data().id,
@@ -95,4 +100,22 @@ export async function getPossibleFriendsBySimilarUsername(database,strSearch,arr
         return null
     }
 }
+
+export async function sendFriendRequest(database,senderObject,receiverIdDoc){  //senderObject = { idDoc,username}
+    const collezione = collection(database,"users",receiverIdDoc,'userRequests');
+    try{
+        const result = await addDoc(collezione,{
+            id:uuid.v4(),
+            sender: senderObject,
+            text: "richiesta di amicizia",
+            createdAt: Timestamp.fromDate(new Date())
+        })
+
+        return result
+    }catch(error){
+        console.log(error.message)
+        return null
+    }
+}
+
 

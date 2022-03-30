@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, FlatList, SafeAreaView, TouchableOpacity, LogBox, Animated,Dimensions,StatusBar } from 'react-native'
+import { StyleSheet, Text, View, TextInput, FlatList, SafeAreaView, TouchableOpacity, LogBox, Animated, Dimensions, StatusBar, ToastAndroid } from 'react-native'
 import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import {
     collection,
@@ -20,30 +20,52 @@ import { auth, database } from '../firebase';
 import FriendListItem from '../components/FriendListItem';
 import { faMessage } from "@fortawesome/free-solid-svg-icons";
 import { userInformationsContext } from '../Stacks/TabNavigator';
+import Toast from 'react-native-toast-message'
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const Friends = () => {
-    const {userInfo,friendsField} = React.useContext(userInformationsContext);
+    const { userInfo, friendsField } = React.useContext(userInformationsContext);
+    const navigation = useNavigation();
     const [filter, setFilter] = useState('');
     //const [friends, setFriends] = useState([]);
     const [selectedItem, setSelectedItem] = useState() //elemento selezionato quando premo a lungo su una card, serve per aggiornare l'array di amici senza dover fare ogni volta nuove richieste
     LogBox.ignoreLogs(["Setting a timer", "AsyncStorage has been extracted from react-native core"])
 
-    
-    const handleDeleteItem = async (item) => {
+
+    const handleDeleteItem = (item) => {
         try {
             const document = doc(database, 'users', userInfo.idDoc);
-            await updateDoc(document, {
+             updateDoc(document, {
                 friendsRef: arrayRemove(item)
             })
         } catch (error) {
             console.log(error.message)
+            Toast.show({
+                type: 'error',
+                text1: 'DELETE',
+                text2: 'Impossible to remove friend',
+                position:'bottom',
+                visibilityTime:2000,
+                
+            })
         }
+
+        Toast.show({
+            type: 'success',
+            text1: 'DELETE',
+            text2: 'The friend has been removed succesfully',
+            position:'bottom',
+            visibilityTime:2000,
+            
+        })
 
     }
 
     useLayoutEffect(() => {
         if (selectedItem) {
-            const {friends,setFriends} = friendsField;
+            const { friends, setFriends } = friendsField;
             const { item, action } = selectedItem;
             if (action == 'delete') {
                 setFriends(friends?.filter(friend => friend.username !== item.username))
@@ -83,14 +105,22 @@ const Friends = () => {
                                 setSelectedItem={setSelectedItem}
                             />
                         )}
-                        keyExtractor={(friend) => friend.id}
+                        keyExtractor={friend => friend.id}
 
                     />
-                </SafeAreaView>
-                <View style={styles.plusContainer}>
+                    <View style={styles.plusContainer}>
+                    <TouchableOpacity style={styles.plusButton}
+                        onPress={()=>{
+                            navigation.navigate("SearchFriend")
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faPlusCircle} size={50} />
+                    </TouchableOpacity>
                 </View>
-            </View>
-        </View>
+                </SafeAreaView>
+                </View>
+            <Toast/>
+        </View >
     )
 }
 
@@ -101,7 +131,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         justifyContent: 'center',
-        alignItems:'center'
+        alignItems: 'center'
     },
     textInput: {
         width: '80%',
@@ -118,15 +148,19 @@ const styles = StyleSheet.create({
         width: '100%',
         marginTop: 20
     },
-    plusContainer: {
-        position: 'absolute',
-        right: '5%',
-        bottom: '5%'
-    },
     contentContainer: {
         flex: 1,
         justifyContent: 'center',
         flexDirection: 'column',
         alignItems: 'center',
-    }
+    },
+    plusContainer: {
+        position:'absolute',
+        right:'5%',
+        bottom:'5%'
+    },
+    plusButton: {
+
+    },
+
 })

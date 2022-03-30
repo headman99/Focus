@@ -1,5 +1,5 @@
 
-import { StyleSheet, Text, View, LogBox,StatusBar } from 'react-native';
+import { StyleSheet, Text, View, LogBox,StatusBar,Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Navigator from './Stacks/Navigator';
 
@@ -19,7 +19,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container:{
     flex:1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 10,
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 10,
   }
   
 })

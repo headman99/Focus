@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Home from '../screens/Home'
 import Chat from '../screens/Chat'
 import FriendsNavigator from './FriendsNavigator';
-import Notifications from '../screens/Notifications';
+import TabNotifications from './TabNotifications'
 import { getUserInformationsByMail } from '../api';
 import { auth, database } from '../firebase';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -20,6 +20,7 @@ const TabNavigator = () => {
     const Tab = createBottomTabNavigator();
     const [userInfo, setUserInfo] = useState();
     const [friends, setFriends] = useState([]);
+    const [pendingFriends,setPendingFriends] = useState([]);
 
     const readFriendsFromDB = React.useCallback(async (userInfo) => {
         console.log("leggo gli amici")
@@ -38,12 +39,14 @@ const TabNavigator = () => {
 
     const readUserInfo = React.useCallback(async () => {
         const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
-        const promiseResult = await Promise.resolve(userInfo)
-        setUserInfo(promiseResult)
+        const promiseResult = await Promise.resolve(userInfo);
+        if(promiseResult)
+            setUserInfo(promiseResult)
         return promiseResult;
     },[]);
 
     useEffect(async () => {
+        console.log("eseguo")
         readUserInfo().then(async(result) =>{
             await readFriendsFromDB(result)
         })
@@ -102,7 +105,7 @@ const TabNavigator = () => {
                         }
                     }}
                 />
-                <Tab.Screen /*options={{headerShown:false}}*/ name="Notifications" component={Notifications}
+                <Tab.Screen /*options={{headerShown:false}}*/ name="Notifications" component={TabNotifications}
                     options={{
                         tabBarLabel: 'Notifications',
                         tabBarIcon: ({ color, size }) => {

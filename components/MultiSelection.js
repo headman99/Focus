@@ -3,8 +3,8 @@ import React from 'react'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 
-const MultiSelection = ({ show, setIsLongPressed,visible,OnDelete }) => {
-    if(!visible)
+const MultiSelection = ({ show, setIsLongPressed, visible, OnDelete }) => {
+    if (!visible)
         return null
 
     return (
@@ -13,7 +13,6 @@ const MultiSelection = ({ show, setIsLongPressed,visible,OnDelete }) => {
             transparent={true}
             visible={show}
             onRequestClose={() => {
-                Alert.alert('Modal has now been closed.');
                 setIsLongPressed(false)
             }}
         >
@@ -23,16 +22,19 @@ const MultiSelection = ({ show, setIsLongPressed,visible,OnDelete }) => {
             <View
                 style={styles.content}
             >
-                <TouchableOpacity
-                    style={styles.touchable}
-                    onPress={()=>OnDelete()}
-                >
-                    <Text style={[styles.textInTouch,{color:'#a60000'}]}>Delete</Text>
-                    <View style={styles.iconContainer}>
-                       <FontAwesomeIcon icon={faTrashAlt} size={20}/> 
-                    </View>
-                    
-                </TouchableOpacity>
+              
+                    <TouchableOpacity
+                        style={styles.touchable}
+                        onPress={() => {
+                            OnDelete()
+                        }}
+                    >
+                        <Text style={[styles.textInTouch, { color: '#a60000' }]}>Delete</Text>
+                        <View style={styles.iconContainer}>
+                            <FontAwesomeIcon icon={faTrashAlt} size={20} />
+                        </View>
+
+                    </TouchableOpacity>
                 <View style={styles.delemitator}></View>
                 <TouchableOpacity
                     style={styles.touchable}
@@ -64,22 +66,22 @@ const styles = StyleSheet.create({
     },
     touchable: {
         flex: 1,
-        justifyContent:'center',
-        alignItems:'center',
-        width:'100%',
-        flexDirection:'row'
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        flexDirection: 'row'
     },
-    textInTouch:{
-        fontSize:22
+    textInTouch: {
+        fontSize: 22
     },
-    delemitator:{
-        width:'80%',
-        borderWidth:0.5,
-        borderColor:'#e8e8e8'
+    delemitator: {
+        width: '80%',
+        borderWidth: 0.5,
+        borderColor: '#e8e8e8'
     },
-    iconContainer:{
-        position:'absolute',
-        left:'70%'
+    iconContainer: {
+        position: 'absolute',
+        left: '70%'
     }
 
 })

@@ -4,21 +4,19 @@ import Friends from '../screens/Friends';
 import NewFriendWindow from '../screens/NewFriendWindow';
 import React, { useEffect, createContext } from 'react'
 import { userInformationsContext } from '../Stacks/TabNavigator';
-import {
-    getDoc
-} from 'firebase/firestore'
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Tab = createMaterialTopTabNavigator();
+//const Tab = createMaterialTopTabNavigator();
+const Stack = createNativeStackNavigator();
 
 const FriendsNavigator = () => {
     const userInfo = React.useContext(userInformationsContext);
-    const [friends, setFriends] = React.useState([]);
-    
+
     return (
-            <Tab.Navigator initialRouteName='friends'>
-                <Tab.Screen component={Friends} name='friends' />
-                <Tab.Screen component={NewFriendWindow} name="NewFriend" />
-            </Tab.Navigator>
+            <Stack.Navigator initialRouteName='friends'>
+                <Stack.Screen component={Friends} name='friends' />
+                <Stack.Screen component={NewFriendWindow} name="SearchFriend"/>
+            </Stack.Navigator>
     )
 }
 

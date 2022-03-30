@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native'
 const Chat = () => {
     LogBox.ignoreLogs(["Setting a timer"])
     const navigation = useNavigation();
-    const [messages, setMessages] = useState([])
+    const [messages, setMessages] = useState([]);
 
 
     useLayoutEffect(() => {

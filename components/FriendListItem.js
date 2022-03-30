@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image, TouchableHighlight, Modal } from 'react-native'
-import React,{useContext} from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, Image, TouchableHighlight, Modal, ToastAndroid } from 'react-native'
+import React, { useContext } from 'react'
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import MultiSelection from './MultiSelection';
 
@@ -7,7 +7,7 @@ import MultiSelection from './MultiSelection';
 
 
 
-const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible,setSelectedItem}) => {
+const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible, setSelectedItem }) => {
     const [changeLayout, setChangeLayout] = React.useState(false);
     const [isLongPressed, setIsLongPressed] = React.useState(false) //detect if a card is pressed longly
     const changeStyleTouchable = {
@@ -26,19 +26,23 @@ const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible,setSele
 
     const handleDelete = () => {
         setSelectedItem({
-            item:item,
-            action:'delete'
+            item: item,
+            action: 'delete'
         });
     }
 
     return (
         <View style={changeLayout ? [styles.container, { opacity: 0.5 }] : styles.container}>
-            <MultiSelection
-                show={isLongPressed}
-                setIsLongPressed={setIsLongPressed}
-                visible={MultiSelectionVisible}
-                OnDelete={handleDelete}
-            />
+                <MultiSelection
+                    show={isLongPressed}
+                    setIsLongPressed={setIsLongPressed}
+                    visible={MultiSelectionVisible}
+                    OnDelete={() => {
+                        handleDelete();
+                        //ToastAndroid.show("Request succesfully",);
+                    }}
+                />
+            
             <TouchableHighlight
                 style={isLongPressed ? [styles.TouchableHigh, changeStyleTouchable] : styles.TouchableHigh}
                 onLongPress={handleLongPress}
@@ -76,7 +80,7 @@ const styles = StyleSheet.create({
     container: {
         height: 80,
         width: '100%',
-        
+
     },
     chatButton: {
         width: 32,
@@ -105,7 +109,7 @@ const styles = StyleSheet.create({
     cardContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        backgroundColor: 'white'
+        backgroundColor: 'white',
     },
     imageContainer: {
         borderRadius: 20,

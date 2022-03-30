@@ -6,46 +6,111 @@ import {
     Modal,
     Alert,
     TextInput,
+    Text
 } from 'react-native'
 import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FlatList } from 'react-native-gesture-handler';
 import FriendListItem from '../components/FriendListItem';
-import { getUsersBySimilarUsername, getPossibleFriendsBySimilarUsername } from '../api';
+import { getUsersBySimilarUsername, getPossibleFriendsBySimilarUsername, sendFriendRequest } from '../api';
 import { database } from '../firebase';
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
-import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+    arrayUnion,
+    doc,
+    getDoc,
+    updateDoc,
+    writeBatch,
+    collection,
+    Timestamp,
+    onSnapshot
+} from 'firebase/firestore';
 import { userInformationsContext } from '../Stacks/TabNavigator';
-
+import Toast from 'react-native-toast-message'
+import uuid from 'react-native-uuid'
 
 const NewFriendWindow = () => {
     const [newFriends, setNewFriends] = useState([]);
+    const [pendingFriends, setPendingFriends] = useState([]); //oggetto {idDoc,username} degli amici in pending
     const [filter, setFilter] = useState('');
-    const {userInfo,friendsField} = React.useContext(userInformationsContext);
-    
+    const { userInfo, friendsField } = React.useContext(userInformationsContext);
 
-    const addItem = async (item) => {
+
+
+    /*useEffect(() => {
+        const q = query(collection(database, "users", userInfo.idDoc, 'userRequests'), where("state", "==", "pending"));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            setPendingFriends(
+                querySnapshot.docs.map(doc =>doc.data().receiver) //viene passato l'oggetto {idDoc,username} del ricevente
+            )
+        });
+
+        return ()=>unsubscribe()
+    }, [])*/
+
+    const onPressSendRequest = async (item) => {
+        console.log("entro")
         try {
-             await updateDoc(doc(database, "users", userInfo.idDoc), {
-                friendsRef: arrayUnion(item)
+            const batch = writeBatch(database);
+            //setto la notifica al ricevitore
+            const collReceiver = doc(database, "users", item.idDoc, 'userRequests', userInfo.idDoc);
+            batch.set(collReceiver, {
+                id: uuid.v4(),
+                sender: {
+                    idDoc: userInfo.idDoc,
+                    username: userInfo.data.username
+                },
+                text: "richiesta di amicizia",
+                createdAt: Timestamp.fromDate(new Date())
             });
+
+            //setto la notifica al mittente
+            const collSender = doc(database, 'users', userInfo.idDoc, 'userRequests', item.idDoc);
+            batch.set(collSender, {
+                id: uuid.v4(),
+                state: 'pending',
+                text: "Attesa conferma richiesta",
+                receiver: {
+                    idDoc:item.idDoc,
+                    username:item.username
+                },
+                createdAt: Timestamp.fromDate(new Date())
+            });
+
+            batch.commit();
+
+            Toast.show({
+                type: 'success',
+                text1: 'ADD FRIEND ',
+                text2: 'Request sent',
+                position: 'bottom',
+                visibilityTime: 2000,
+            })
         } catch (error) {
-            console.log(error.message)
+            console.log(error.message);
+            Toast.show({
+                type: 'error',
+                text1: 'ADD FRIEND',
+                text2: 'Impossibile processare la richiesta',
+                visibilityTime: 2000
+            })
         }
+
     }
 
-    const OnPressAddFriend = async (item) => {
-        const {friends,setFriends} = friendsField;
-        await addItem(doc(database, 'users', item.idDoc));
-        setFriends([...friends,item]);
-    }
 
     const handleFilter = async () => {
-        const {friends} = friendsField;
+        if (filter == '') {
+            setNewFriends([]);
+            return;
+        }
+
+        const friends = friendsField.friends;
+        console.log(friends)
         let arrayPromises;
         if (friends?.length > 0) {
-            arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends);
+            arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends.map(friend => friend.username));
         } else {
             arrayPromises = await getUsersBySimilarUsername(database, filter);
         }
@@ -75,15 +140,17 @@ const NewFriendWindow = () => {
                         style={styles.friendlist}
                         data={newFriends}
                         renderItem={({ item }) => (
-                            <FriendListItem item={item}
+                            <FriendListItem
+                                item={item}
                                 icon={{ image: faUserPlus, size: 25 }}
-                                onPressIcon={OnPressAddFriend}
+                                onPressIcon={onPressSendRequest}
                                 MultiSelectionVisible={false}
                             />
                         )}
                         keyExtractor={(friend) => friend.id}
                     />
                 </View>
+                <Toast />
             </SafeAreaView>
         </View>
 
@@ -145,5 +212,6 @@ const styles = StyleSheet.create({
     friendlist: {
         flex: 1,
     },
+
 
 })
