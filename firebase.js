@@ -29,6 +29,7 @@ const auth = firebase.auth();
 export {auth}*/
 
 const app = initializeApp(firebaseConfig);
+// Initialize Firebase Cloud Messaging and get a reference to the service
 export const auth = getAuth();
 export const database = getFirestore();
 

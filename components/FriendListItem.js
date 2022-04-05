@@ -6,10 +6,10 @@ import MultiSelection from './MultiSelection';
 
 
 
-
 const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible, setSelectedItem }) => {
     const [changeLayout, setChangeLayout] = React.useState(false);
     const [isLongPressed, setIsLongPressed] = React.useState(false) //detect if a card is pressed longly
+
     const changeStyleTouchable = {
         opacity: 0.85,
         backgroundColor: '#287ef7' //azzurrino

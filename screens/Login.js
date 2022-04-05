@@ -5,6 +5,13 @@ import { useState, useEffect } from 'react'
 import { auth } from '../firebase'
 import { useNavigation } from '@react-navigation/native'
 import { onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'firebase/auth'
+import {
+    addDoc,
+    collection,
+    doc,
+    setDoc
+} from 'firebase/firestore'
+import { database } from '../firebase'
 //import { createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'firebase/auth'
 //import { onAuthStateChanged  } from 'firebase/auth'
 const Login = ({navigation}) => {
@@ -16,19 +23,20 @@ const Login = ({navigation}) => {
             .then(userCredentials => {
                 const user = userCredentials.user;
                 console.log('Registered in with:', user.email)
-                alert('Registered in with:', user.email)
                 navigation.replace("MainPage")
             })
-            .catch(error => alert(error.message))
+            .catch(error => alert(error.message));
     }
 
     const handleLogin = () => {
         signInWithEmailAndPassword(auth,email.trim(), password).then(userCredentials => {
             const user = userCredentials.user;
             console.log('Logged in with:', user.email)
-            navigation.replace("MainPage")
+           
         })
-            .catch(error => alert(error.message))
+            .catch(error => alert(error.message));
+        
+        navigation.replace("MainPage")
     }
 
     return (

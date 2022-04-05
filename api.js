@@ -55,6 +55,26 @@ export async function getUserInformationsByMail(database, mail) {
 
 }
 
+export async function getUserInformationsByUsername(database, username) {
+    try {
+        const collectionRef = collection(database, 'users');
+        const q = query(collectionRef, where("username", "==", username));
+        const docRef = await getDocs(q);
+        const data = docRef.docs[0].data()
+        return {
+            data:data,
+            idDoc:docRef.docs[0].id
+        }
+
+    } catch (error) {
+        console.error(error);
+        return null
+    }
+
+
+}
+
+
 export async function getUsersBySimilarUsername(database, strSearch) {
     var strlength = strSearch.length;
     var strFrontCode = strSearch.slice(0, strlength - 1);

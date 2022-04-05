@@ -10,7 +10,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faHome, faMessage, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { StatusBar } from 'expo-status-bar';
-import { getDoc } from 'firebase/firestore';
+import {
+    getDoc,
+    query,
+    collection,
+    onSnapshot,
+    where,
+    setDoc,
+    updateDoc,
+    doc,
+    writeBatch,
+    deleteDoc,
+    arrayUnion
+} from 'firebase/firestore';
+import { async } from '@firebase/util';
 
 
 
@@ -20,7 +33,7 @@ const TabNavigator = () => {
     const Tab = createBottomTabNavigator();
     const [userInfo, setUserInfo] = useState();
     const [friends, setFriends] = useState([]);
-    const [pendingFriends,setPendingFriends] = useState([]);
+    const [pendingFriends, setPendingFriends] = useState([]);
 
     const readFriendsFromDB = React.useCallback(async (userInfo) => {
         console.log("leggo gli amici")
@@ -40,30 +53,50 @@ const TabNavigator = () => {
     const readUserInfo = React.useCallback(async () => {
         const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
         const promiseResult = await Promise.resolve(userInfo);
-        if(promiseResult)
+        if (promiseResult)
             setUserInfo(promiseResult)
         return promiseResult;
-    },[]);
+    }, []);
 
+    //setta i listener
     useEffect(async () => {
         console.log("eseguo")
-        readUserInfo().then(async(result) =>{
-            await readFriendsFromDB(result)
+        //riempie gli amici
+        const user = await readUserInfo();
+        await readFriendsFromDB(user);
+
+        //ascolta per cambiamenti delle notifiche
+        const q = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted','denied']));
+
+        const unsub = onSnapshot(q,(snapDocs) => {
+            snapDocs.docs.forEach(async (snap) => {
+                if (snap.data().state === 'accepted') {
+                    console.log("accepted")
+                    const batch = writeBatch(database);
+                    batch.update(doc(database, 'users', user.idDoc), {
+                        friendsRef: arrayUnion(doc(database,'users', snap.id))
+                    })
+                    batch.delete(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id));
+                    await batch.commit();
+                } else if (snap.data().state === 'denied') {
+                    await deleteDoc(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id))
+                }
+            })
+
         })
-        
-        return () => {
-        }
+
+        return () => { }
 
     }, [auth.currentUser])
 
     return (
         <userInformationsContext.Provider value={{
-            userInfo:userInfo,
-            friendsField:{
-                friends:friends,
-                setFriends:setFriends
-            }
-            }}>
+            userInfo: userInfo,
+            friendsField: {
+                friends: friends,
+                setFriends: setFriends
+            },
+        }}>
             <StatusBar />
             <Tab.Navigator initialRouteName="Home"
                 screenOptions={() => ({

@@ -12,13 +12,18 @@ import {
     query,
     orderBy,
     runTransaction,
-    arrayUnion
+    arrayUnion,
+    updateDoc,
+    Timestamp,
+    where,
 } from 'firebase/firestore'
 import { auth, database } from '../firebase'
 import { userInformationsContext } from '../Stacks/TabNavigator'
 import { useEffect, useLayoutEffect } from 'react'
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message'
+import { getUserInformationsByUsername } from '../api'
+
 
 
 
@@ -29,22 +34,26 @@ const UserRequest = () => {
     const { userInfo, friendsField } = React.useContext(userInformationsContext);
     const { friends, setFriends } = friendsField;
 
-    useLayoutEffect(() => {
-        const collectionRef = collection(database, 'users',userInfo.idDoc, 'userRequests');
-        const q = query(collectionRef, orderBy("createdAt")); //ordina per tempo discendente
+    useEffect(()=>{
+        setNotifiche(notifiche.sort((a,b)=> a.createdAt - b.createdAt));
+    },[notifiche])
+
+    useEffect(() => {
+        console.log("sono qui")
+        const collectionRef = collection(database, 'notifications', userInfo.idDoc, 'userRequests');
+        const q = query(collectionRef, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
         const unsubscribe = onSnapshot(q, snapshot => {
-            console.log("eseguo")
             setNotifiche(
-                snapshot.docs.filter(doc => doc.data()?.state!=='pending').map(doc => ({
-                    text: doc.data().text,
+                snapshot.docs.map(doc => ({
+                    requestRef: doc.data().requestRef,
                     id: doc.data().id,
-                    sender: doc.data().sender,   //sender contiene username ed idDoc del mittente. idDoc -> sender.idDoc, username= sender.username
-                    createdAt: doc.data().createdAt.toDate(),
+                    createdAt: doc.data().createdAt,
+                    sender: doc.data().sender,
                     idDoc:doc.id
                 }))
             )
 
-        })
+        });
 
         return () => unsubscribe();
     }, []);
@@ -53,25 +62,33 @@ const UserRequest = () => {
         try {
             let amico;
             await runTransaction(database, async (transaction) => {
-                const docRef = doc(database, 'users', item.sender.idDoc)
-                const sfDoc = await transaction.get(docRef);
-                if (!sfDoc.exists()) {
-                    throw "Document does not exists!";
+                const senderDoc = await transaction.get(item.requestRef);
+                
+                const friend = await transaction.get(doc(database,'users',item.idDoc)); 
+            
+                if (!senderDoc.exists()) {
+                    throw "documento inesistente"
                 }
-                amico = {
-                    username: sfDoc.data().username,
-                    id: sfDoc.data().id,
-                    avatar: sfDoc.data().avatar
-                };
 
-                //modifico 
-                transaction.update(doc(database, "users", userInfo.idDoc), {
-                    friendsRef: arrayUnion(docRef)
+                amico = {
+                    username: friend.data().username,
+                    id: friend.data().id,
+                    avatar: friend.data().avatar
+                }
+
+
+                transaction.update(item.requestRef, {
+                    state: 'accepted'
                 });
 
-                transaction.delete(doc(database,'users',userInfo.idDoc,'userRequests',item.idDoc))
-                //transaction.delete(doc(database,'users',))
+               // console.log(friend.idDoc)
+                transaction.update(doc(database,'users',userInfo.idDoc),{
+                    friendsRef:arrayUnion(doc(database,'users',item.idDoc))
+                })
+
+                transaction.delete(doc(database,'notifications',userInfo.idDoc,'userRequests',item.idDoc));
             });
+
             Toast.show({
                 type: 'success',
                 text1: 'FRIEND ADDED',
@@ -100,20 +117,20 @@ const UserRequest = () => {
                     data={notifiche}
                     renderItem={({ item }) => (
                         <View>
-                            <Text>{item.text} da {item?.sender?.username}</Text>
+                            <Text>richiesta  da {item.sender}</Text>
                             <TouchableOpacity
                                 style={{ width: 100, height: 50, backgroundColor: 'blue' }}
-                                onPress={async() => {
+                                onPress={async () => {
                                     const amico = await acceptRequest(item);
-                                    setFriends([...friends,amico]);
-                                    setNotifiche(notifiche.filter(not => not.id!==item.id))
+                                    setFriends([...friends, amico]);
+                                    setNotifiche(notifiche.filter(notif => notif.id !== notif.id))
                                 }}
                             >
                                 <Text style={{ color: 'white' }}>Accept</Text>
                             </TouchableOpacity>
                         </View>
                     )}
-                    keyExtractor={(notifica) => notifica.id}
+                    keyExtractor={(notifica, index) => index}
                 >
                 </FlatList>
             </View>

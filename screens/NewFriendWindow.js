@@ -24,61 +24,71 @@ import {
     writeBatch,
     collection,
     Timestamp,
-    onSnapshot
+    onSnapshot,
+    setDoc,
+    deleteDoc,
+    WriteBatch,
+    runTransaction,
+    query,
+    getDocs,
+    where
 } from 'firebase/firestore';
 import { userInformationsContext } from '../Stacks/TabNavigator';
 import Toast from 'react-native-toast-message'
 import uuid from 'react-native-uuid'
 
-const NewFriendWindow = () => {
+
+
+
+const NewFriendWindow = ({navigation}) => {
     const [newFriends, setNewFriends] = useState([]);
-    const [pendingFriends, setPendingFriends] = useState([]); //oggetto {idDoc,username} degli amici in pending
+    //const [pendingFriends, setPendingFriends] = useState([]); //oggetto {idDoc,username} degli amici in pending
     const [filter, setFilter] = useState('');
-    const { userInfo, friendsField } = React.useContext(userInformationsContext);
+    const { userInfo, friendsField} = React.useContext(userInformationsContext);
+    const [pendingFriends,setPendingFriends] = React.useState([]);
 
-
-
-    /*useEffect(() => {
-        const q = query(collection(database, "users", userInfo.idDoc, 'userRequests'), where("state", "==", "pending"));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            setPendingFriends(
-                querySnapshot.docs.map(doc =>doc.data().receiver) //viene passato l'oggetto {idDoc,username} del ricevente
-            )
-        });
-
-        return ()=>unsubscribe()
-    }, [])*/
+    useEffect(async ()=>{
+        const q = query(collection(database,'notifications',userInfo.idDoc,'userRequests'),where('state','==','pending'));
+        const documenti = await getDocs(q);
+        //const docPromises = await Promise.all(documenti)
+        const array = documenti.docs.map(docm => docm.data().receiver)
+        setPendingFriends(array)
+        return ()=>{}
+    },[])
 
     const onPressSendRequest = async (item) => {
-        console.log("entro")
         try {
-            const batch = writeBatch(database);
-            //setto la notifica al ricevitore
-            const collReceiver = doc(database, "users", item.idDoc, 'userRequests', userInfo.idDoc);
-            batch.set(collReceiver, {
-                id: uuid.v4(),
-                sender: {
-                    idDoc: userInfo.idDoc,
-                    username: userInfo.data.username
-                },
-                text: "richiesta di amicizia",
-                createdAt: Timestamp.fromDate(new Date())
-            });
+           await runTransaction(database, async (transaction)=>{
+                const docSender = doc(database,'notifications',userInfo.idDoc,'userRequests',item.idDoc)
+                const docReceiver= doc(database,'notifications',item.idDoc,'userRequests',userInfo.idDoc)
+                const Sender = await getDoc(docSender);
+                const Receiver = await getDoc(docReceiver);
+                if (Sender.exists() || Receiver.exists()) 
+                {
+                    throw "Document already exists";
+                }
+                const casualId = uuid.v4();
+                const createdAt = Timestamp.now(new Date())
 
-            //setto la notifica al mittente
-            const collSender = doc(database, 'users', userInfo.idDoc, 'userRequests', item.idDoc);
-            batch.set(collSender, {
-                id: uuid.v4(),
-                state: 'pending',
-                text: "Attesa conferma richiesta",
-                receiver: {
-                    idDoc:item.idDoc,
-                    username:item.username
-                },
-                createdAt: Timestamp.fromDate(new Date())
-            });
+                transaction.set(docSender,{
+                    type:'sent',
+                    state:'pending',
+                    id:casualId,
+                    sender: userInfo.data.username,
+                    text:'richiesta di amicizia',
+                    receiver:item.username,
+                    createdAt: createdAt
+                });
+            
+                transaction.set(docReceiver,{
+                    type:'received',
+                    requestRef: docSender,
+                    id:casualId,
+                    createdAt:createdAt,
+                    sender: userInfo.data.username   
+                });
 
-            batch.commit();
+           });
 
             Toast.show({
                 type: 'success',
@@ -88,11 +98,12 @@ const NewFriendWindow = () => {
                 visibilityTime: 2000,
             })
         } catch (error) {
-            console.log(error.message);
+            //console.log(error.message);
             Toast.show({
                 type: 'error',
                 text1: 'ADD FRIEND',
                 text2: 'Impossibile processare la richiesta',
+                position: 'bottom',
                 visibilityTime: 2000
             })
         }
@@ -125,7 +136,7 @@ const NewFriendWindow = () => {
         <View style={styles.container}>
             <SafeAreaView style={styles.content}>
                 <View
-                    style={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}
+                    style={{ width: '100%', justifyContent: 'center', alignItems: 'center', flexDirection:'row' }}
                 >
                     <TextInput
                         style={styles.textInput}
@@ -134,11 +145,21 @@ const NewFriendWindow = () => {
                         placeholder='Search'
                         onEndEditing={handleFilter}
                     />
+                    <TouchableOpacity
+                        onPress={()=>{
+                            navigation.navigate("PendingFriends",{
+                                pendingFriends:pendingFriends
+                            });
+                        }}
+                        style={{width:'10%',height:'100%',borderWidth:1}}
+                    >
+                        <Text>PendingRequests</Text>
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.mainContent}>
                     <FlatList
                         style={styles.friendlist}
-                        data={newFriends}
+                        data={newFriends.filter(item => !pendingFriends.includes(item.username))}
                         renderItem={({ item }) => (
                             <FriendListItem
                                 item={item}

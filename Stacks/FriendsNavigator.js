@@ -5,6 +5,7 @@ import NewFriendWindow from '../screens/NewFriendWindow';
 import React, { useEffect, createContext } from 'react'
 import { userInformationsContext } from '../Stacks/TabNavigator';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import PendingFriends from '../screens/PendingFriends';
 
 //const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -16,6 +17,7 @@ const FriendsNavigator = () => {
             <Stack.Navigator initialRouteName='friends'>
                 <Stack.Screen component={Friends} name='friends' />
                 <Stack.Screen component={NewFriendWindow} name="SearchFriend"/>
+                <Stack.Screen component={PendingFriends} name="PendingFriends"/>
             </Stack.Navigator>
     )
 }

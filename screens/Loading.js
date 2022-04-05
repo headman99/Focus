@@ -4,15 +4,16 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase'
 const Loading = ({ navigation }) => {
 
-    useEffect(() => {
+    useEffect( () => {
         setTimeout(() => {
-            const unsubscribe = onAuthStateChanged(auth, user => {
+            const unsubscribe =  onAuthStateChanged(auth, user => {
                 if (user) {
                     navigation.replace("MainPage")
                 } else {
                     navigation.replace("Login")
                 }
             })
+
             return unsubscribe
         }, 1000);
     }, [])
