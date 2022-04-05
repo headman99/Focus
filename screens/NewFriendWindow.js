@@ -118,7 +118,6 @@ const NewFriendWindow = ({navigation}) => {
         }
 
         const friends = friendsField.friends;
-        console.log(friends)
         let arrayPromises;
         if (friends?.length > 0) {
             arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends.map(friend => friend.username));

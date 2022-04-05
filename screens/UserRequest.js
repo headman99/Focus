@@ -69,21 +69,13 @@ const UserRequest = () => {
                 if (!senderDoc.exists()) {
                     throw "documento inesistente"
                 }
-
-                amico = {
-                    username: friend.data().username,
-                    id: friend.data().id,
-                    avatar: friend.data().avatar
-                }
-
-
                 transaction.update(item.requestRef, {
                     state: 'accepted'
                 });
 
                // console.log(friend.idDoc)
-                transaction.update(doc(database,'users',userInfo.idDoc),{
-                    friendsRef:arrayUnion(doc(database,'users',item.idDoc))
+                transaction.set(doc(database,'users',userInfo.idDoc,'friends',item.idDoc),{
+                    friend:doc(database,'users',item.idDoc)
                 })
 
                 transaction.delete(doc(database,'notifications',userInfo.idDoc,'userRequests',item.idDoc));
@@ -122,7 +114,6 @@ const UserRequest = () => {
                                 style={{ width: 100, height: 50, backgroundColor: 'blue' }}
                                 onPress={async () => {
                                     const amico = await acceptRequest(item);
-                                    setFriends([...friends, amico]);
                                     setNotifiche(notifiche.filter(notif => notif.id !== notif.id))
                                 }}
                             >

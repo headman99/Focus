@@ -14,7 +14,8 @@ import {
     getDoc,
     updateDoc,
     arrayRemove,
-    arrayUnion
+    arrayUnion,
+    deleteDoc
 } from "firebase/firestore";
 import { auth, database } from '../firebase';
 import FriendListItem from '../components/FriendListItem';
@@ -36,10 +37,8 @@ const Friends = () => {
 
     const handleDeleteItem = (item) => {
         try {
-            const document = doc(database, 'users', userInfo.idDoc);
-             updateDoc(document, {
-                friendsRef: arrayRemove(item)
-            })
+            const document = doc(database, 'users', userInfo.idDoc,'friends',item);
+             deleteDoc(document)
         } catch (error) {
             console.log(error.message)
             Toast.show({
@@ -65,11 +64,11 @@ const Friends = () => {
 
     useLayoutEffect(() => {
         if (selectedItem) {
-            const { friends, setFriends } = friendsField;
+            const { friends } = friendsField;
             const { item, action } = selectedItem;
             if (action == 'delete') {
-                setFriends(friends?.filter(friend => friend.username !== item.username))
-                handleDeleteItem(doc(database, 'users', item.idDoc))
+                //setFriends(friends?.filter(friend => friend.username !== item.username))
+                handleDeleteItem(item.idDoc)
             }
         }
 

@@ -35,8 +35,8 @@ const TabNavigator = () => {
     const [friends, setFriends] = useState([]);
     const [pendingFriends, setPendingFriends] = useState([]);
 
-    const readFriendsFromDB = React.useCallback(async (userInfo) => {
-        console.log("leggo gli amici")
+    const readFriendsFromDB = async (userInfo) => {
+        /*console.log("leggo gli amici")
         const friendsRefPromises = userInfo.data.friendsRef.map(async element => await getDoc(element));
         const friendDocs = await Promise.all(friendsRefPromises);
         let ArraydiAmici = friendDocs.map(documento => ({
@@ -44,10 +44,22 @@ const TabNavigator = () => {
             username: documento.data().username,
             avatar: documento.data().avatar,
             idDoc: documento.id
-        }));
-
-        setFriends(ArraydiAmici);
-    }, []);
+        }));*/
+        const unsub = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), (snap) => {
+            console.log("eseguo lettura amici")
+            let ArraydiAmici = [];
+            snap.forEach(async (elem) => {
+                const amico = await getDoc(elem.data().friend);
+                ArraydiAmici.push({
+                    username: amico.data().username,
+                    avatar: amico.data().avatar,
+                    id: amico.data().id,
+                    idDoc: amico.id
+                })
+            })
+            setFriends(ArraydiAmici);
+        })
+    };
 
 
     const readUserInfo = React.useCallback(async () => {
@@ -66,22 +78,28 @@ const TabNavigator = () => {
         await readFriendsFromDB(user);
 
         //ascolta per cambiamenti delle notifiche
-        const q = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted','denied']));
+        const q = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted', 'denied']));
 
-        const unsub = onSnapshot(q,(snapDocs) => {
-            snapDocs.docs.forEach(async (snap) => {
+        onSnapshot(q, (snapDocs) => {
+            snapDocs.forEach(async (snap) => {
                 if (snap.data().state === 'accepted') {
                     console.log("accepted")
                     const batch = writeBatch(database);
-                    batch.update(doc(database, 'users', user.idDoc), {
+                    /*batch.update(doc(database, 'users', user.idDoc), {
                         friendsRef: arrayUnion(doc(database,'users', snap.id))
-                    })
+                    })*/
+                    batch.set(doc(database, 'users', user.idDoc, 'friends', snap.id), {
+                        friend: doc(database, 'users', snap.id)
+                    });
+
                     batch.delete(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id));
                     await batch.commit();
                 } else if (snap.data().state === 'denied') {
                     await deleteDoc(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id))
                 }
             })
+
+
 
         })
 
