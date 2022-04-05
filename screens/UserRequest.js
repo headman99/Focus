@@ -30,16 +30,10 @@ import { getUserInformationsByUsername } from '../api'
 
 
 const UserRequest = () => {
-    const [notifiche, setNotifiche] = useState([]);
-    const { userInfo, friendsField } = React.useContext(userInformationsContext);
+    const { userInfo, friendsField,notifications } = React.useContext(userInformationsContext);
     const { friends, setFriends } = friendsField;
 
-    useEffect(()=>{
-        setNotifiche(notifiche.sort((a,b)=> a.createdAt - b.createdAt));
-    },[notifiche])
-
-    useEffect(() => {
-        console.log("sono qui")
+    /*useEffect(() => {
         const collectionRef = collection(database, 'notifications', userInfo.idDoc, 'userRequests');
         const q = query(collectionRef, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
         const unsubscribe = onSnapshot(q, snapshot => {
@@ -49,23 +43,23 @@ const UserRequest = () => {
                     id: doc.data().id,
                     createdAt: doc.data().createdAt,
                     sender: doc.data().sender,
-                    idDoc:doc.id
+                    idDoc: doc.id
                 }))
             )
 
         });
 
         return () => unsubscribe();
-    }, []);
+    }, []);*/
 
     const acceptRequest = async (item) => { //item = notifiche n-esima. Devo accedere al mittente attraverso il campo sender (item.sender)
         try {
             let amico;
             await runTransaction(database, async (transaction) => {
                 const senderDoc = await transaction.get(item.requestRef);
-                
-                const friend = await transaction.get(doc(database,'users',item.idDoc)); 
-            
+
+                const friend = await transaction.get(doc(database, 'users', item.idDoc));
+
                 if (!senderDoc.exists()) {
                     throw "documento inesistente"
                 }
@@ -73,12 +67,14 @@ const UserRequest = () => {
                     state: 'accepted'
                 });
 
-               // console.log(friend.idDoc)
-                transaction.set(doc(database,'users',userInfo.idDoc,'friends',item.idDoc),{
-                    friend:doc(database,'users',item.idDoc)
-                })
+                // se l'amico esiste gia tra la sua lista allora non lo aggiunge, ma accetta solo la richiesta
+                if (!friends.map(amico => amico.username).includes(item.sender)) {
+                    transaction.set(doc(database, 'users', userInfo.idDoc, 'friends', item.idDoc), {
+                        friend: doc(database, 'users', item.idDoc)
+                    })
+                }
 
-                transaction.delete(doc(database,'notifications',userInfo.idDoc,'userRequests',item.idDoc));
+                transaction.delete(doc(database, 'notifications', userInfo.idDoc, 'userRequests', item.idDoc));
             });
 
             Toast.show({
@@ -106,15 +102,14 @@ const UserRequest = () => {
         <View style={styles.container}>
             <View style={styles.listContainer}>
                 <FlatList
-                    data={notifiche}
+                    data={notifications.sort((a, b) => a.createdAt - b.createdAt)}
                     renderItem={({ item }) => (
                         <View>
                             <Text>richiesta  da {item.sender}</Text>
                             <TouchableOpacity
                                 style={{ width: 100, height: 50, backgroundColor: 'blue' }}
                                 onPress={async () => {
-                                    const amico = await acceptRequest(item);
-                                    setNotifiche(notifiche.filter(notif => notif.id !== notif.id))
+                                    await acceptRequest(item);
                                 }}
                             >
                                 <Text style={{ color: 'white' }}>Accept</Text>

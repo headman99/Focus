@@ -107,7 +107,7 @@ export async function getPossibleFriendsBySimilarUsername(database,strSearch,arr
     try {
         const userInfo = await getUserInformationsByMail(database,auth?.currentUser?.email);
         const collectionRef = collection(database, `users`);
-        const q = query(collectionRef, where("username", "not-in", array),where("username", ">=", startcode),where("username","<" ,endcode),where("username","!=",userInfo.data.username),limit(50), orderBy("username"));
+        const q = query(collectionRef, where("username", "not-in", [...array,userInfo.data.username]),where("username", ">=", startcode),where("username","<" ,endcode),limit(50), orderBy("username"));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
             id:doc.data().id,

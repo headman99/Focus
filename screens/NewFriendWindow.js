@@ -54,7 +54,7 @@ const NewFriendWindow = ({navigation}) => {
         const array = documenti.docs.map(docm => docm.data().receiver)
         setPendingFriends(array)
         return ()=>{}
-    },[])
+    },[]);
 
     const onPressSendRequest = async (item) => {
         try {
@@ -120,6 +120,7 @@ const NewFriendWindow = ({navigation}) => {
         const friends = friendsField.friends;
         let arrayPromises;
         if (friends?.length > 0) {
+            
             arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends.map(friend => friend.username));
         } else {
             arrayPromises = await getUsersBySimilarUsername(database, filter);

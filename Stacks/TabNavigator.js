@@ -33,8 +33,10 @@ const TabNavigator = () => {
     const Tab = createBottomTabNavigator();
     const [userInfo, setUserInfo] = useState();
     const [friends, setFriends] = useState([]);
-    const [pendingFriends, setPendingFriends] = useState([]);
+    const [notifications,setNotifications] = useState([])
+    
 
+    /**Read friends from db and detect changes */
     const readFriendsFromDB = async (userInfo) => {
         /*console.log("leggo gli amici")
         const friendsRefPromises = userInfo.data.friendsRef.map(async element => await getDoc(element));
@@ -70,16 +72,26 @@ const TabNavigator = () => {
         return promiseResult;
     }, []);
 
-    //setta i listener
-    useEffect(async () => {
-        console.log("eseguo")
-        //riempie gli amici
-        const user = await readUserInfo();
-        await readFriendsFromDB(user);
+    /*
+        Detect changes in notifications for userRequests 
+    */
+    const detectNotificationsChanges = async (user)=>{
 
-        //ascolta per cambiamenti delle notifiche
+        const collectionRef = collection(database, 'notifications', user.idDoc, 'userRequests');
+        const quer = query(collectionRef, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
+        onSnapshot(quer, snapshot => {
+            setNotifications(
+                snapshot.docs.map(doc => ({
+                    requestRef: doc.data().requestRef,
+                    id: doc.data().id,
+                    createdAt: doc.data().createdAt,
+                    sender: doc.data().sender,
+                    idDoc: doc.id
+                }))
+            )
+        });
+
         const q = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted', 'denied']));
-
         onSnapshot(q, (snapDocs) => {
             snapDocs.forEach(async (snap) => {
                 if (snap.data().state === 'accepted') {
@@ -98,11 +110,14 @@ const TabNavigator = () => {
                     await deleteDoc(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id))
                 }
             })
-
-
-
         })
+    }
 
+    //setta i listener
+    useEffect(async () => {
+        const user = await readUserInfo();
+        await readFriendsFromDB(user);
+        await detectNotificationsChanges(user)
         return () => { }
 
     }, [auth.currentUser])
@@ -114,6 +129,7 @@ const TabNavigator = () => {
                 friends: friends,
                 setFriends: setFriends
             },
+            notifications:notifications
         }}>
             <StatusBar />
             <Tab.Navigator initialRouteName="Home"
