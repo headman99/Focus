@@ -10,12 +10,11 @@ import {
 } from 'react-native'
 import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FlatList } from 'react-native-gesture-handler';
 import FriendListItem from '../components/FriendListItem';
 import { getUsersBySimilarUsername, getPossibleFriendsBySimilarUsername, sendFriendRequest } from '../api';
 import { database } from '../firebase';
-import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import {
     arrayUnion,
     doc,
@@ -36,59 +35,60 @@ import {
 import { userInformationsContext } from '../Stacks/TabNavigator';
 import Toast from 'react-native-toast-message'
 import uuid from 'react-native-uuid'
+import SearchHeaderBar from '../components/SearchHeaderBar';
 
 
 
 
-const NewFriendWindow = ({navigation}) => {
+const NewFriendWindow = ({ navigation }) => {
     const [newFriends, setNewFriends] = useState([]);
     //const [pendingFriends, setPendingFriends] = useState([]); //oggetto {idDoc,username} degli amici in pending
     const [filter, setFilter] = useState('');
-    const { userInfo, friendsField} = React.useContext(userInformationsContext);
-    const [pendingFriends,setPendingFriends] = React.useState([]);
+    const { userInfo, friendsField } = React.useContext(userInformationsContext);
+    const [pendingFriends, setPendingFriends] = React.useState([]);
 
-    useEffect(async ()=>{
-        const q = query(collection(database,'notifications',userInfo.idDoc,'userRequests'),where('state','==','pending'));
+    useEffect(async () => {
+        const q = query(collection(database, 'notifications', userInfo.idDoc, 'userRequests'), where('state', '==', 'pending'));
         const documenti = await getDocs(q);
         //const docPromises = await Promise.all(documenti)
         const array = documenti.docs.map(docm => docm.data().receiver)
         setPendingFriends(array)
-        return ()=>{}
-    },[]);
+        return () => { }
+    }, []);
 
     const onPressSendRequest = async (item) => {
         try {
-           await runTransaction(database, async (transaction)=>{
-                const docSender = doc(database,'notifications',userInfo.idDoc,'userRequests',item.idDoc)
-                const docReceiver= doc(database,'notifications',item.idDoc,'userRequests',userInfo.idDoc)
+            await runTransaction(database, async (transaction) => {
+                const docSender = doc(database, 'notifications', userInfo.idDoc, 'userRequests', item.idDoc)
+                const docReceiver = doc(database, 'notifications', item.idDoc, 'userRequests', userInfo.idDoc)
                 const Sender = await getDoc(docSender);
                 const Receiver = await getDoc(docReceiver);
-                if (Sender.exists() || Receiver.exists()) 
-                {
+                if (Sender.exists() || Receiver.exists()) {
                     throw "Document already exists";
                 }
                 const casualId = uuid.v4();
                 const createdAt = Timestamp.now(new Date())
 
-                transaction.set(docSender,{
-                    type:'sent',
-                    state:'pending',
-                    id:casualId,
+                transaction.set(docSender, {
+                    type: 'sent',
+                    state: 'pending',
+                    id: casualId,
                     sender: userInfo.data.username,
-                    text:'richiesta di amicizia',
-                    receiver:item.username,
+                    text: 'richiesta di amicizia',
+                    receiver: item.username,
                     createdAt: createdAt
                 });
-            
-                transaction.set(docReceiver,{
-                    type:'received',
+
+                transaction.set(docReceiver, {
+                    type: 'received',
                     requestRef: docSender,
-                    id:casualId,
-                    createdAt:createdAt,
-                    sender: userInfo.data.username   
+                    id: casualId,
+                    createdAt: createdAt,
+                    sender: userInfo.data.username,
+                    read: false
                 });
 
-           });
+            });
 
             Toast.show({
                 type: 'success',
@@ -120,7 +120,7 @@ const NewFriendWindow = ({navigation}) => {
         const friends = friendsField.friends;
         let arrayPromises;
         if (friends?.length > 0) {
-            
+
             arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends.map(friend => friend.username));
         } else {
             arrayPromises = await getUsersBySimilarUsername(database, filter);
@@ -135,27 +135,13 @@ const NewFriendWindow = ({navigation}) => {
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.content}>
-                <View
-                    style={{ width: '100%', justifyContent: 'center', alignItems: 'center', flexDirection:'row' }}
-                >
-                    <TextInput
-                        style={styles.textInput}
-                        onChangeText={filter => setFilter(filter)}
-                        value={filter}
-                        placeholder='Search'
-                        onEndEditing={handleFilter}
-                    />
-                    <TouchableOpacity
-                        onPress={()=>{
-                            navigation.navigate("PendingFriends",{
-                                pendingFriends:pendingFriends
-                            });
-                        }}
-                        style={{width:'10%',height:'100%',borderWidth:1}}
-                    >
-                        <Text>PendingRequests</Text>
-                    </TouchableOpacity>
-                </View>
+                <SearchHeaderBar
+                    filter={filter}
+                    setFilter={setFilter}
+                    title='Search friends'
+                    goBackArrow={true}
+                    handleEndEditing={handleFilter}
+                />
                 <View style={styles.mainContent}>
                     <FlatList
                         style={styles.friendlist}
@@ -211,8 +197,6 @@ const styles = StyleSheet.create({
         paddingBottom: '5%',
         flexDirection: 'column',
         justifyContent: 'center',
-
-
     },
     textInput: {
         width: '80%',
@@ -228,7 +212,6 @@ const styles = StyleSheet.create({
     mainContent: {
         flex: 1,
         marginTop: 10,
-
     },
     friendlist: {
         flex: 1,

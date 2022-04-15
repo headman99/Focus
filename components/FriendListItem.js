@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     container: {
         height: 80,
         width: '100%',
-
     },
     chatButton: {
         width: 32,
@@ -123,5 +122,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e0e0e0',
         overflow: 'hidden',
+        elevation:4
     }
 })

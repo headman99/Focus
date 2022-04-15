@@ -25,6 +25,7 @@ import Toast from 'react-native-toast-message'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { useNavigation } from '@react-navigation/native';
+import SearchHeaderBar from '../components/SearchHeaderBar';
 
 const Friends = () => {
     const { userInfo, friendsField } = React.useContext(userInformationsContext);
@@ -37,17 +38,17 @@ const Friends = () => {
 
     const handleDeleteItem = (item) => {
         try {
-            const document = doc(database, 'users', userInfo.idDoc,'friends',item);
-             deleteDoc(document)
+            const document = doc(database, 'users', userInfo.idDoc, 'friends', item);
+            deleteDoc(document)
         } catch (error) {
             console.log(error.message)
             Toast.show({
                 type: 'error',
                 text1: 'DELETE',
                 text2: 'Impossible to remove friend',
-                position:'bottom',
-                visibilityTime:2000,
-                
+                position: 'bottom',
+                visibilityTime: 2000,
+
             })
         }
 
@@ -55,9 +56,9 @@ const Friends = () => {
             type: 'success',
             text1: 'DELETE',
             text2: 'The friend has been removed succesfully',
-            position:'bottom',
-            visibilityTime:2000,
-            
+            position: 'bottom',
+            visibilityTime: 2000,
+
         })
 
     }
@@ -73,52 +74,41 @@ const Friends = () => {
         }
 
     }, [selectedItem]);
-
-    const returnFilter = () => {
-        if (filter !== '') {
-            return friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase()))
-        } else {
-            return friendsField.friends;
-        }
-    }
-
+    
     return (
         <View style={styles.container}>
-            <View style={styles.container}>
-                <TextInput
-                    style={styles.textInput}
-                    onChangeText={text => setFilter(text)}
-                    value={filter}
-                    placeholder='Search'
+         <SearchHeaderBar
+            filter={filter}
+            setFilter={setFilter}
+            goBackArrow={false}
+         />
+            <SafeAreaView style={styles.mainContent}>
+                <FlatList
+                    style={styles.friendlist}
+                    data={filter?friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase())):friendsField.friends}
+                    renderItem={({ item }) => (
+                        <FriendListItem
+                            item={item}
+                            icon={{ image: faMessage, size: 20 }}
+                            MultiSelectionVisible={true}
+                            setSelectedItem={setSelectedItem}
+                        />
+                    )}
+                    keyExtractor={friend => friend.id}
 
                 />
-                <SafeAreaView style={styles.mainContent}>
-                    <FlatList
-                        style={styles.friendlist}
-                        data={returnFilter()}
-                        renderItem={({ item }) => (
-                            <FriendListItem
-                                item={item}
-                                icon={{ image: faMessage, size: 20 }}
-                                MultiSelectionVisible={true}
-                                setSelectedItem={setSelectedItem}
-                            />
-                        )}
-                        keyExtractor={friend => friend.id}
-
-                    />
-                    <View style={styles.plusContainer}>
+                <View style={styles.plusContainer}>
                     <TouchableOpacity style={styles.plusButton}
-                        onPress={()=>{
+                        onPress={() => {
                             navigation.navigate("SearchFriend")
                         }}
                     >
                         <FontAwesomeIcon icon={faPlusCircle} size={50} />
                     </TouchableOpacity>
                 </View>
-                </SafeAreaView>
-                </View>
-            <Toast/>
+            </SafeAreaView>
+
+            <Toast />
         </View >
     )
 }
@@ -132,16 +122,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    textInput: {
-        width: '80%',
-        height: 50,
-        borderColor: 'black',
-        borderWidth: 1,
-        borderRadius: 10,
-        marginTop: '5%',
-        padding: 10,
-        backgroundColor: 'white'
-    },
     mainContent: {
         flex: 1,
         width: '100%',
@@ -154,12 +134,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     plusContainer: {
-        position:'absolute',
-        right:'5%',
-        bottom:'5%'
+        position: 'absolute',
+        right: '5%',
+        bottom: '5%'
     },
-    plusButton: {
-
-    },
-
 })

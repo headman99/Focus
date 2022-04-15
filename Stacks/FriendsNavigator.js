@@ -15,8 +15,16 @@ const FriendsNavigator = () => {
 
     return (
             <Stack.Navigator initialRouteName='friends'>
-                <Stack.Screen component={Friends} name='friends' />
-                <Stack.Screen component={NewFriendWindow} name="SearchFriend"/>
+                <Stack.Screen component={Friends} name='friends' 
+                    options={{
+                        headerShown:false
+                    }}
+                />
+                <Stack.Screen component={NewFriendWindow} name="SearchFriend"
+                     options={{
+                        headerShown:false
+                    }}
+                />
                 <Stack.Screen component={PendingFriends} name="PendingFriends"/>
             </Stack.Navigator>
     )

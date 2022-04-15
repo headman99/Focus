@@ -16,6 +16,7 @@ import {
     updateDoc,
     Timestamp,
     where,
+    writeBatch,
 } from 'firebase/firestore'
 import { auth, database } from '../firebase'
 import { userInformationsContext } from '../Stacks/TabNavigator'
@@ -23,6 +24,7 @@ import { useEffect, useLayoutEffect } from 'react'
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message'
 import { getUserInformationsByUsername } from '../api'
+import FriendRequestCard from '../components/FriendRequestCard'
 
 
 
@@ -30,36 +32,32 @@ import { getUserInformationsByUsername } from '../api'
 
 
 const UserRequest = () => {
-    const { userInfo, friendsField,notifications } = React.useContext(userInformationsContext);
+    const { userInfo, friendsField, notifications } = React.useContext(userInformationsContext);
     const { friends, setFriends } = friendsField;
 
-    /*useEffect(() => {
-        const collectionRef = collection(database, 'notifications', userInfo.idDoc, 'userRequests');
-        const q = query(collectionRef, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
-        const unsubscribe = onSnapshot(q, snapshot => {
-            setNotifiche(
-                snapshot.docs.map(doc => ({
-                    requestRef: doc.data().requestRef,
-                    id: doc.data().id,
-                    createdAt: doc.data().createdAt,
-                    sender: doc.data().sender,
-                    idDoc: doc.id
-                }))
-            )
+    useEffect(async()=>{
+        try{
+            const q = query(collection(database,'notifications',userInfo.idDoc,'userRequests'),where("read", '==', false));
+            const querySnap = await getDocs(q);
+            querySnap.forEach(async (d)=>{
+                await updateDoc(doc(database,'notifications',userInfo.idDoc,'userRequests',d.id),{
+                    read:true
+                })
+            });
+        }catch(err){
+            alert(err.message)
+        }
 
-        });
-
-        return () => unsubscribe();
-    }, []);*/
+        return ()=>{}
+    },[])
 
     const acceptRequest = async (item) => { //item = notifiche n-esima. Devo accedere al mittente attraverso il campo sender (item.sender)
+
         try {
             let amico;
             await runTransaction(database, async (transaction) => {
                 const senderDoc = await transaction.get(item.requestRef);
-
                 const friend = await transaction.get(doc(database, 'users', item.idDoc));
-
                 if (!senderDoc.exists()) {
                     throw "documento inesistente"
                 }
@@ -72,6 +70,14 @@ const UserRequest = () => {
                     transaction.set(doc(database, 'users', userInfo.idDoc, 'friends', item.idDoc), {
                         friend: doc(database, 'users', item.idDoc)
                     })
+                    Toast.show({
+                        type: 'warning',
+                        text1: 'FRIEND ADDED',
+                        text2: 'The user was already your friend',
+                        position: 'bottom',
+                        visibilityTime: 2000
+                    })
+
                 }
 
                 transaction.delete(doc(database, 'notifications', userInfo.idDoc, 'userRequests', item.idDoc));
@@ -98,23 +104,44 @@ const UserRequest = () => {
         }
     }
 
+    const denyRequest = async (item) => {
+        try {
+            const batch = writeBatch(database);
+            batch.update(item.requestRef, {
+                state: 'denied'
+            });
+            batch.delete(doc(database, 'notifications', userInfo.idDoc, 'userRequests', item.idDoc));
+            batch.commit();
+            Toast.show({
+                type: 'success',
+                text1: 'FRIEND REQUEST DENIED',
+                text2: 'Friend request denied succesfully',
+                position: 'bottom',
+                visibilityTime: 2000,
+            });
+        }catch(err){
+            Toast.show({
+                type: 'error',
+                text1: 'DENY REQUEST',
+                text2: 'Error in rejection, try again',
+                position: 'bottom',
+                visibilityTime: 2000,
+            })
+        }
+       
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.listContainer}>
                 <FlatList
                     data={notifications.sort((a, b) => a.createdAt - b.createdAt)}
                     renderItem={({ item }) => (
-                        <View>
-                            <Text>richiesta  da {item.sender}</Text>
-                            <TouchableOpacity
-                                style={{ width: 100, height: 50, backgroundColor: 'blue' }}
-                                onPress={async () => {
-                                    await acceptRequest(item);
-                                }}
-                            >
-                                <Text style={{ color: 'white' }}>Accept</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <FriendRequestCard
+                            item={item}
+                            handleAccept={() => acceptRequest(item)}
+                            handleReject={() => denyRequest(item)}
+                        />
                     )}
                     keyExtractor={(notifica, index) => index}
                 >
@@ -130,11 +157,10 @@ export default UserRequest
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-
     },
     listContainer: {
-        flex: 1
+        width: '100%',
+        height: '100%',
     },
 
 })
