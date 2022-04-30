@@ -1,15 +1,13 @@
-import React from "react";
+import React,{useEffect}from "react";
 import { StyleSheet, Text, ScrollView, View } from "react-native";
 import { displayTime } from "./utils";
 
 // print the lap time
 
 function Result({ results }) {
-  
   return (
     <ScrollView>
       <View style={styles.resultItem} />
-
       {results.map((item, index) => (
         <View key={index} style={styles.resultItem}>
           <Text style={styles.resultItemText}>
@@ -37,4 +35,4 @@ const styles = StyleSheet.create({
 });
 
 // https://reactjs.org/docs/react-api.html#reactmemo
-export default React.memo(Result);
+export default React.memo(Result)

@@ -17,7 +17,7 @@ import {
 
 } from "firebase/firestore";
 import uuid from 'react-native-uuid';
-import { auth } from "./firebase";
+import { auth } from "./firebas";
 
 /*
 Informazione di un utente dato il suo id del documento

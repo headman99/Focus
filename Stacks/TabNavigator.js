@@ -5,7 +5,7 @@ import Start from '../screens/Start';
 import FriendsNavigator from './FriendsNavigator';
 import TabNotifications from './TabNotifications'
 import { getUserInformationsByMail } from '../api';
-import { auth, database } from '../firebase';
+import { auth, database } from '../firebas';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faHome, faMessage, faUserFriends, faPlus, faBookOpen, faBookAtlas, faBookOpenReader } from '@fortawesome/free-solid-svg-icons';
@@ -48,15 +48,6 @@ const TabNavigator = () => {
 
     /**Read friends from db and detect changes */
     const readFriendsFromDB = async (userInfo) => {
-        /*console.log("leggo gli amici")
-        const friendsRefPromises = userInfo.data.friendsRef.map(async element => await getDoc(element));
-        const friendDocs = await Promise.all(friendsRefPromises);
-        let ArraydiAmici = friendDocs.map(documento => ({
-            id: documento.data().id,
-            username: documento.data().username,
-            avatar: documento.data().avatar,
-            idDoc: documento.id
-        }));*/
         const unsub = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), (snap) => {
             console.log("eseguo lettura amici")
             let ArraydiAmici = [];
@@ -73,14 +64,14 @@ const TabNavigator = () => {
         })
     };
 
-
-    const readUserInfo = React.useCallback(async () => {
+    //Carica il context con lo state userInfo che uso in tutte la altre pagine
+    const readUserInfo = async () => {
         const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
         const promiseResult = await Promise.resolve(userInfo);
         if (promiseResult)
             setUserInfo(promiseResult)
         return promiseResult;
-    }, []);
+    };
 
     /*
         Detect changes in notifications for userRequests 
@@ -108,9 +99,6 @@ const TabNavigator = () => {
                 if (snap.data().state === 'accepted') {
                     console.log("accepted")
                     const batch = writeBatch(database);
-                    /*batch.update(doc(database, 'users', user.idDoc), {
-                        friendsRef: arrayUnion(doc(database,'users', snap.id))
-                    })*/
                     batch.set(doc(database, 'users', user.idDoc, 'friends', snap.id), {
                         friend: doc(database, 'users', snap.id)
                     });
@@ -134,6 +122,7 @@ const TabNavigator = () => {
 
     //setta i listener
     useEffect(async () => {
+        console.log(auth.currentUser.uid);
         const user = await readUserInfo();
         await readFriendsFromDB(user);
         await detectNotificationsChanges(user)
@@ -176,14 +165,17 @@ const TabNavigator = () => {
 
                     }}
                 />
-                <Tab.Screen /*options={{headerShown:false}}*/ name="Chat" component={Chat}
+                
+                {/*
+                Attiva quando implementi la chat
+                <Tab.Screen name="Chat" component={Chat}
                     options={{
                         tabBarLabel: 'Chat',
                         tabBarIcon: ({ color, size }) => {
                             return <MaterialIcons name="chat" color={color} size={size} style={{ marginTop: 1 }} />
                         }
                     }}
-                />
+                />*/}
                 <Tab.Screen
                     name="Start"
                     component={Start}

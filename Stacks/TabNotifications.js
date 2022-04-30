@@ -7,6 +7,7 @@ import Invitations from '../screens/Invitations';
 const Tab = createMaterialTopTabNavigator();
 
 const TabNotifications = () => {
+  console.log("Notificatoins")
   return (
     <Tab.Navigator initialRouteName='Userrequest'>
         <Tab.Screen name='friendship Requests' component={UserRequest}/>

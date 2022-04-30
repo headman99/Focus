@@ -18,7 +18,7 @@ import {
     where,
     writeBatch,
 } from 'firebase/firestore'
-import { auth, database } from '../firebase'
+import { auth, database } from '../firebas'
 import { userInformationsContext } from '../Stacks/TabNavigator'
 import { useEffect, useLayoutEffect } from 'react'
 import uuid from 'react-native-uuid';
@@ -71,7 +71,7 @@ const UserRequest = () => {
                         friend: doc(database, 'users', item.idDoc)
                     })
                     Toast.show({
-                        type: 'warning',
+                        type: 'success',
                         text1: 'FRIEND ADDED',
                         text2: 'The user was already your friend',
                         position: 'bottom',

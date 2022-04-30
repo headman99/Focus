@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity,LogBox } from 'react-native'
 import React,{useState} from 'react'
-import { auth } from '../firebase'
+import { auth } from '../firebas'
 import { signOut } from 'firebase/auth'
 import { useNavigation } from '@react-navigation/native'
 import SearchHeaderBar from '../components/SearchHeaderBar'

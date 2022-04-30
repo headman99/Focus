@@ -9,7 +9,7 @@ import {
     query
 } from "firebase/firestore"
 import { signOut } from 'firebase/auth'
-import { auth, database } from '../firebase'
+import { auth, database } from '../firebas'
 import { useNavigation } from '@react-navigation/native'
 
 const Chat = () => {

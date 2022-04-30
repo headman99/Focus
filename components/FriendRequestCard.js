@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native'
 import React, { useEffect } from 'react'
 import { getUserInformationsByUsername } from '../api'
-import { database } from '../firebase'
+import { database } from '../firebas'
 
 
 

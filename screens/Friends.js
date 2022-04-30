@@ -17,7 +17,7 @@ import {
     arrayUnion,
     deleteDoc
 } from "firebase/firestore";
-import { auth, database } from '../firebase';
+import { auth, database } from '../firebas';
 import FriendListItem from '../components/FriendListItem';
 import { faMessage } from "@fortawesome/free-solid-svg-icons";
 import { userInformationsContext } from '../Stacks/TabNavigator';
@@ -34,7 +34,6 @@ const Friends = () => {
     //const [friends, setFriends] = useState([]);
     const [selectedItem, setSelectedItem] = useState() //elemento selezionato quando premo a lungo su una card, serve per aggiornare l'array di amici senza dover fare ogni volta nuove richieste
     LogBox.ignoreLogs(["Setting a timer", "AsyncStorage has been extracted from react-native core"])
-
 
     const handleDeleteItem = (item) => {
         try {
@@ -62,7 +61,7 @@ const Friends = () => {
         })
 
     }
-
+    
     useLayoutEffect(() => {
         if (selectedItem) {
             const { friends } = friendsField;
@@ -74,7 +73,7 @@ const Friends = () => {
         }
 
     }, [selectedItem]);
-    
+
     return (
         <View style={styles.container}>
          <SearchHeaderBar

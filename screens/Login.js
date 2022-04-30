@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpaci
 import React from 'react'
 import AsyncStorageLib from '@react-native-async-storage/async-storage'
 import { useState, useEffect } from 'react'
-import { auth } from '../firebase'
+import { auth } from '../firebas'
 import { useNavigation } from '@react-navigation/native'
 import { onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'firebase/auth'
 import {
@@ -11,7 +11,7 @@ import {
     doc,
     setDoc
 } from 'firebase/firestore'
-import { database } from '../firebase'
+import { database } from '../firebas'
 //import { createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'firebase/auth'
 //import { onAuthStateChanged  } from 'firebase/auth'
 const Login = ({navigation}) => {

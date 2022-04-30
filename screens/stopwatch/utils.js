@@ -1,26 +1,29 @@
-const padToTwo = (number) => (number <= 9 ? `0${number}` : number);
+export const padToTwo = (number) => (number <= 9 ? `0${number}` : number);
 
-export const displayTime = (centiseconds) => {
-  let minutes = 0;
-  let seconds = 0;
-
-  if (centiseconds < 0) {
-    centiseconds = 0;
-  }
-
-  if (centiseconds < 100) {
-    return `00:00:${padToTwo(centiseconds)}`;
-  }
-
-  let remainCentiseconds = centiseconds % 100;
-  seconds = (centiseconds - remainCentiseconds) / 100;
-
+export const displayTime = (seconds) => {
   if (seconds < 60) {
-    return `00:${padToTwo(seconds)}:${padToTwo(remainCentiseconds)}`;
+    return `00:00:${padToTwo(seconds)}`;
   }
+
 
   let remainSeconds = seconds % 60;
-  minutes = (seconds - remainSeconds) / 60;
+  let minutes = (seconds - remainSeconds) / 60;
+  let remainingMinutes = minutes % 60
+  if(minutes<60){
+    return `00:${padToTwo(minutes)}:${padToTwo(seconds)}`;
+  }
+ 
+  let hours = (minutes - remainingMinutes) / 60
 
-  return `${padToTwo(minutes)}:${padToTwo(remainSeconds)}:${padToTwo(remainCentiseconds)}`;
+  return `${padToTwo(hours)}:${padToTwo(remainingMinutes)}:${padToTwo(remainSeconds)}`;
 };
+
+//converte un tempo nel formato hh:mm:ss in secondi
+export const secondConverterTime = (time)=>{
+  const duration = time.split(':')
+  const ora = parseInt(duration[0],10)
+  const minuto = parseInt(duration[1],10)
+  const secondo =parseInt(duration[2],10) 
+  const sommaTempoSecondi = ora*3600 + minuto*60 + secondo;
+  return sommaTempoSecondi
+}

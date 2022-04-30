@@ -15,7 +15,7 @@ function Control({ isRunning, handleLeftButtonPress, handleRightButtonPress }) {
       >
         <View style={styles.controlButton}>
           <Text style={{ color: isRunning ? "#fff" : "#9d9ca2" }}>
-            {isRunning ? "Lap" : "Reset"}
+            End
           </Text>
         </View>
       </TouchableOpacity>
@@ -45,14 +45,14 @@ const CENTER = {
 const styles = StyleSheet.create({
   controlButtonBorder: {
     ...CENTER,
-    width: 70,
-    height: 70,
+    width: 75,
+    height: 75,
     borderRadius: 70,
   },
   controlButton: {
     ...CENTER,
-    width: 65,
-    height: 65,
+    width: 70,
+    height: 70,
     borderRadius: 65,
     borderColor: "#000",
     borderWidth: 1,

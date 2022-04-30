@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 const MultiSelection = ({ show, setIsLongPressed, visible, OnDelete }) => {
     if (!visible)
         return null
-
+    console.log("modal")
     return (
         <Modal
             animationType='slide'
@@ -47,7 +47,7 @@ const MultiSelection = ({ show, setIsLongPressed, visible, OnDelete }) => {
     )
 }
 
-export default MultiSelection
+export default React.memo(MultiSelection)
 
 const styles = StyleSheet.create({
     voidView: {

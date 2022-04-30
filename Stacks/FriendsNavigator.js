@@ -12,7 +12,6 @@ const Stack = createNativeStackNavigator();
 
 const FriendsNavigator = () => {
     const userInfo = React.useContext(userInformationsContext);
-
     return (
             <Stack.Navigator initialRouteName='friends'>
                 <Stack.Screen component={Friends} name='friends' 

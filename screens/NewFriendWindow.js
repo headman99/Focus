@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { FlatList } from 'react-native-gesture-handler';
 import FriendListItem from '../components/FriendListItem';
 import { getUsersBySimilarUsername, getPossibleFriendsBySimilarUsername, sendFriendRequest } from '../api';
-import { database } from '../firebase';
+import { database } from '../firebas';
 import { faUserPlus, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import {
     arrayUnion,
@@ -98,7 +98,7 @@ const NewFriendWindow = ({ navigation }) => {
                 visibilityTime: 2000,
             })
         } catch (error) {
-            //console.log(error.message);
+            console.log(error.message);
             Toast.show({
                 type: 'error',
                 text1: 'ADD FRIEND',

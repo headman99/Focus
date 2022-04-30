@@ -37,10 +37,7 @@ const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible, setSel
                     show={isLongPressed}
                     setIsLongPressed={setIsLongPressed}
                     visible={MultiSelectionVisible}
-                    OnDelete={() => {
-                        handleDelete();
-                        //ToastAndroid.show("Request succesfully",);
-                    }}
+                    OnDelete={handleDelete}
                 />
             
             <TouchableHighlight
