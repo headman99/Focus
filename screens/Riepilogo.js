@@ -13,6 +13,7 @@ const Riepilogo = () => {
   const { userInfo } = useContext(userInformationsContext);
   const [openModal, setOpenModal] = useState(false)
   const [modalItem, setmodalItem] = useState(null)
+  const [refreshing,setRefreshing] = useState(false)
 
 
   function FlatListElement({ item,multiSelectionVisible}) {
@@ -26,9 +27,7 @@ const Riepilogo = () => {
       }
     }
 
-    const  memoizedCahngePressed = useCallback((state)=>{
-      setIsLongPressed(state)
-    },[isLongPressed])
+    
 
     return (
       <TouchableHighlight style={[{
@@ -45,16 +44,15 @@ const Riepilogo = () => {
           setOpenModal(true)
         }}
         onLongPress={()=>{
-          console.log("longPressed")
           setIsLongPressed(true)
         }}
       >
         <View style={styles.flatItemContainer}>
           <MultiSelection 
             show={isLongPressed}
-            setIsLongPressed={memoizedCahngePressed}
+            setIsLongPressed={setIsLongPressed}
             visible={true}
-            //OnDelete={()=>handleDelete(item)}
+            OnDelete={()=>handleDelete(item)}
           />
           <FontAwesomeIcon style={styles.iconAngle} icon={faAngleRight} size={25} />
           <View style={{ width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
@@ -72,7 +70,7 @@ const Riepilogo = () => {
   }
 
   const saveSessions = async (user) => {
-    const q = query(collection(database, 'sessions', user?.idDoc, 'soloMode'), limit(20), orderBy('startTime', 'desc'));
+    const q = query(collection(database, 'sessions', user?.idDoc, 'soloMode'), limit(30), orderBy('startTime', 'desc'));
     onSnapshot(q, snap => {
       setSessions(snap.docs.map(document => document.data()))
     });
@@ -149,6 +147,7 @@ const Riepilogo = () => {
           data={sessions}
           keyExtractor={session => session.id}
           renderItem={({ item }) => <FlatListElement item={item} />}
+          refreshing={refreshing}
         />
       </View>
 

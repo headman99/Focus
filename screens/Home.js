@@ -1,21 +1,23 @@
-import { StyleSheet, Text, View, TouchableOpacity,LogBox } from 'react-native'
-import React,{useState} from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, LogBox } from 'react-native'
+import React, { useState, useLayoutEffect } from 'react'
 import { auth } from '../firebas'
 import { signOut } from 'firebase/auth'
 import { useNavigation } from '@react-navigation/native'
-import SearchHeaderBar from '../components/SearchHeaderBar'
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 
 
-LogBox.ignoreLogs(['AsyncStorage has been extracted','Require cycle','Setting a timer'])
+
+LogBox.ignoreLogs(['AsyncStorage has been extracted', 'Require cycle', 'Setting a timer'])
 
 const Home = () => {
   const navigation = useNavigation();
-  const [filter,setFilter] = useState('')
-  
+  const [filter, setFilter] = useState('');
+
   const handleSignOut = () => {
     signOut(auth).then(() => {
-        navigation.replace("Login")
-      }).catch(error => alert(error.message))
+      navigation.replace("Login")
+    }).catch(error => alert(error.message))
   }
 
 
@@ -30,6 +32,6 @@ export default Home
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection:'column'
+    flexDirection: 'column',
   }
 })

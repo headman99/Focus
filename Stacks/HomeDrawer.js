@@ -1,23 +1,24 @@
-import { StyleSheet, Text, View, TextInput } from 'react-native'
-import React, { useState, useEffect,useContext } from 'react'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
+import React from 'react'
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import Home from '../screens/Home'
 import Settings from '../screens/Settings.js'
 import Profile from '../screens/Profile'
 import Riepilogo from '../screens/Riepilogo';
-import { auth, database } from '../firebas';
+import HomeStack from './HomeStack'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { collection, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
-import { userInformationsContext } from './TabNavigator';
+import { faArrowLeft,faGripLines } from '@fortawesome/free-solid-svg-icons';
+import Header from '../components/Header.js';
+import { render } from 'react-dom';
+import NormalDrawerHeader from '../components/NormalDrawerHeader.js';
+
 
 
 
 const HomeDrawer = () => {
     const Drawer = createDrawerNavigator();
 
-    const FilterSpace = () =>{
-        return(
+    const FilterSpace = () => {
+        return (
             <View></View>
         )
     }
@@ -25,26 +26,39 @@ const HomeDrawer = () => {
     return (
         <Drawer.Navigator initialRouteName='Home'
             screenOptions={{
-                swipeEdgeWidth:100,
-                drawerType:'slide',
-                keyboardDismissMode:'on-drag'
-                
+                swipeEdgeWidth: 100,
+                drawerType: 'slide',
+                keyboardDismissMode: 'on-drag',
+
             }}
             defaultScreenOptions={{
-                headerShadowVisible:true
+                headerShadowVisible: true,
             }}
         >
-            <Drawer.Screen name='Home' component={Home}
-                options={{
-                    title:'',
-                    drawerLabel:'Home',
-                }}
+            <Drawer.Screen name='Home' component={HomeStack}
+                options={() => ({
+                    headerShown: false
+                })}
             />
-            <Drawer.Screen name="Settings" component={Settings} />
-            <Drawer.Screen name="Profile" component={Profile} />
-            <Drawer.Screen name='Resume' options={{
-               headerTitle: (props)=> <FilterSpace />
-            }} component={Riepilogo}/>
+            <Drawer.Screen name="Settings" component={Settings}
+                options={({navigation}) => ({
+                    header: (props) => (
+                           <NormalDrawerHeader title="Settings" {...props}/>
+                        )
+                })}
+            />
+            <Drawer.Screen name="Profile" component={Profile}
+                options={() => ({
+                    header: (props) => (
+                        <NormalDrawerHeader title="Profile" {...props}/>
+                    )
+                })}
+            />
+            <Drawer.Screen name='Resume' options={()=>({
+                header: (props) => (
+                    <NormalDrawerHeader title="Resume" {...props}/>
+                )
+                })} component={Riepilogo} />
         </Drawer.Navigator>
     )
 }

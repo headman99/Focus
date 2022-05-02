@@ -3,15 +3,17 @@ import Login from '../screens/Login'
 import Loading from '../screens/Loading';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabNavigator from './TabNavigator';
+import { View,StatusBar } from 'react-native'
+
 const Navigator = () => {
 
     const Stack = createNativeStackNavigator();
     return (
-        <Stack.Navigator initialRouteName="Loading">
-            <Stack.Screen name="Loading" component={Loading} />
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen options={{headerShown:false}} name="MainPage" component={TabNavigator}/>
-        </Stack.Navigator>
+            <Stack.Navigator initialRouteName="Loading">
+                <Stack.Screen name="Loading" component={Loading} />
+                <Stack.Screen name="Login" component={Login} />
+                <Stack.Screen options={{ headerShown: false }} name="MainPage" component={TabNavigator} />
+            </Stack.Navigator>
     )
 }
 
