@@ -23,8 +23,12 @@ import { userInformationsContext } from '../Stacks/TabNavigator'
 import { useEffect, useLayoutEffect } from 'react'
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message'
-import { getUserInformationsByUsername } from '../api'
+
 import FriendRequestCard from '../components/FriendRequestCard'
+import {useFocusEffect } from '@react-navigation/native'
+
+
+
 
 
 
@@ -35,24 +39,27 @@ const UserRequest = () => {
     const { userInfo, friendsField, notifications } = React.useContext(userInformationsContext);
     const { friends, setFriends } = friendsField;
 
-    useEffect(async()=>{
-        try{
-            const q = query(collection(database,'notifications',userInfo.idDoc,'userRequests'),where("read", '==', false));
+    const setReadFlag = async() =>{
+        try {
+            const q = query(collection(database, 'notifications', userInfo.idDoc, 'userRequests'), where("read", '==', false));
             const querySnap = await getDocs(q);
-            querySnap.forEach(async (d)=>{
-                await updateDoc(doc(database,'notifications',userInfo.idDoc,'userRequests',d.id),{
-                    read:true
+            querySnap.forEach(async (d) => {
+                await updateDoc(doc(database, 'notifications', userInfo.idDoc, 'userRequests', d.id), {
+                    read: true
                 })
             });
-        }catch(err){
+        } catch (err) {
             alert(err.message)
         }
-
-        return ()=>{}
-    },[])
+    }
+    //to set the "read" field of notifications at true when the page is focused
+    useFocusEffect(
+        React.useCallback(()=>{
+            setReadFlag()
+        },[])
+    )
 
     const acceptRequest = async (item) => { //item = notifiche n-esima. Devo accedere al mittente attraverso il campo sender (item.sender)
-
         try {
             let amico;
             await runTransaction(database, async (transaction) => {
@@ -119,7 +126,7 @@ const UserRequest = () => {
                 position: 'bottom',
                 visibilityTime: 2000,
             });
-        }catch(err){
+        } catch (err) {
             Toast.show({
                 type: 'error',
                 text1: 'DENY REQUEST',
@@ -128,7 +135,7 @@ const UserRequest = () => {
                 visibilityTime: 2000,
             })
         }
-       
+
     }
 
     return (

@@ -14,13 +14,6 @@ const Home = () => {
   const navigation = useNavigation();
   const [filter, setFilter] = useState('');
 
-  const handleSignOut = () => {
-    signOut(auth).then(() => {
-      navigation.replace("Login")
-    }).catch(error => alert(error.message))
-  }
-
-
   return (
     <View style={styles.container}>
     </View>
@@ -33,5 +26,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
+    
   }
 })

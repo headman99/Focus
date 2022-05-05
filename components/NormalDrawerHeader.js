@@ -12,9 +12,9 @@ const NormalDrawerHeader = ({title,navigation}) => {
         )}
 
         HeaderLeft={(
-            <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+            <TouchableOpacity style={{ flex: 1,width:'100%', justifyContent: 'center', alignItems: 'center' }}
                 onPress={() => {
-                    navigation.openDrawer()
+                    navigation.toggleDrawer()
                 }}
             >
                 <FontAwesomeIcon icon={faGripLines} size={25} />

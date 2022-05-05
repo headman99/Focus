@@ -1,42 +1,31 @@
-import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, TouchableOpacity, ScrollView,Alert,NativeModules } from 'react-native'
 import React from 'react'
 import AsyncStorageLib from '@react-native-async-storage/async-storage'
 import { useState, useEffect } from 'react'
-import { auth } from '../firebas'
+import { auth,database } from '../firebas'
 import { useNavigation } from '@react-navigation/native'
 import { onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'firebase/auth'
 import {
     addDoc,
     collection,
     doc,
-    setDoc
+    setDoc,
+    writeBatch,
+
 } from 'firebase/firestore'
-import { database } from '../firebas'
+
 //import { createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'firebase/auth'
 //import { onAuthStateChanged  } from 'firebase/auth'
 const Login = ({navigation}) => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
-    const handleSignUp = () => {
-        createUserWithEmailAndPassword(auth,email.trim(), password)
-            .then(userCredentials => {
-                const user = userCredentials.user;
-                console.log('Registered in with:', user.email)
-                navigation.replace("MainPage")
-            })
-            .catch(error => alert(error.message));
-    }
-
+   
     const handleLogin = () => {
         signInWithEmailAndPassword(auth,email.trim(), password).then(userCredentials => {
             const user = userCredentials.user;
-            console.log('Logged in with:', user.email)
-           
-        })
-            .catch(error => alert(error.message));
-        
-        navigation.replace("MainPage")
+            console.log('Logged in with:', user.email)           
+        }).catch(error => alert(error.message));
     }
 
     return (
@@ -66,7 +55,7 @@ const Login = ({navigation}) => {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        onPress={handleSignUp}
+                        onPress={()=>navigation.navigate("SignIn")}
                         value={password}
                         style={[styles.button, styles.buttonOutline]}
                     >

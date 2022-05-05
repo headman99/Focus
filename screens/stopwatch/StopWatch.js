@@ -27,6 +27,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { collection, addDoc, arrayRemove, Timestamp, setDoc, doc } from "firebase/firestore";
 import { database } from "../../firebas";
 import { userInformationsContext } from "../../Stacks/TabNavigator";
+import { useFocusEffect } from "@react-navigation/native";
 
 
 
@@ -89,7 +90,6 @@ const StopWatch = () => {
     }
 
   }, [isFocused])
-
 
 
   /*const backAction = () => {

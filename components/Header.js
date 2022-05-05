@@ -1,57 +1,70 @@
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native'
-import React,{memo} from 'react'
-import { useNavigation } from '@react-navigation/native'
+import React, { memo } from 'react'
 
 const Header = ({ HeaderLeft, HeaderContent, HeaderRight }) => {
-    const navigation = useNavigation();
 
     console.log("header")
     return (
-        <View style={styles.headerContainer}>
-            {HeaderLeft &&
-                <View style={styles.headerLeft}>
-                    {HeaderLeft}
+        <View style={styles.container}>
+            <View style={styles.headerContainer}>
+                {HeaderLeft &&
+                    <View style={styles.headerLeft}>
+                        {HeaderLeft}
+                    </View>
+                }
+                <View style={styles.headerContent}>
+                    {HeaderContent ? HeaderContent : null}
                 </View>
-            }
-            <View style={styles.headerContent}>
-                {HeaderContent ? HeaderContent : null}
+                {HeaderRight &&
+                    <View style={styles.headerRight}>
+                        {HeaderRight}
+                    </View>
+                }
             </View>
-            {HeaderRight &&
-                <View style={styles.headerRight}>
-                    {HeaderRight}
-                </View>
-            }
         </View>
+
     )
 }
 
 export default memo(Header);
 
 const styles = StyleSheet.create({
+    container:{
+        width:'100%',
+        flexDirection:'column',
+        backgroundColor:'white',
+        elevation:5,
+        paddingVertical:3
+    },
     headerLeft: {
-        flex: 0.2,
+        width:'18%',
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: 'white',
+        elevation: 10,
     },
     headerContainer: {
         width: '100%',
-        height: 60,
         flexDirection: 'row',
-        backgroundColor: 'white',
-        elevation: 50,
+        elevation: 5,
+        height: 60,
     },
     headerContent: {
-        flex: 0.6,
+        flex: 1,
         width: '60%',
         height: '100%',
         justifyContent: 'center',
-        paddingLeft: 10
+        paddingLeft: 10,
+        backgroundColor: 'white',
+        alignItems: 'center'
     },
     headerRight: {
-        flex: 0.2,
+        width:'18%',
         height: '100%',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: 'white',
+        elevation: 10
     }
 })

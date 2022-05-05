@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect,useRef } from 'react'
 import HomeDrawer from './HomeDrawer';
 import Chat from '../screens/Chat'
 import Start from '../screens/Start';
@@ -22,11 +22,12 @@ import {
     doc,
     writeBatch,
     deleteDoc,
-    arrayUnion
+    arrayUnion,
+    limit
 } from 'firebase/firestore';
 import { StyleSheet, TouchableOpacity, View, Button } from 'react-native'
 import { useNavigation } from '@react-navigation/native';
-import AwesomeButton from 'react-native-really-awesome-button';
+//import AwesomeButton from 'react-native-really-awesome-button';
 
 
 
@@ -35,20 +36,21 @@ import AwesomeButton from 'react-native-really-awesome-button';
 
 export const userInformationsContext = React.createContext();
 
+
 const TabNavigator = () => {
     const navigator = useNavigation()
     const Tab = createBottomTabNavigator();
     const [userInfo, setUserInfo] = useState();
     const [friends, setFriends] = useState([]);
     const [notifications, setNotifications] = useState([]);
+    const listeners = useRef([]);
+
     //badges state
     const [badgeNotifications, setBadgeNotifications] = useState(0);
 
-
-
     /**Read friends from db and detect changes */
     const readFriendsFromDB = async (userInfo) => {
-        const unsub = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), (snap) => {
+        const unsubscribe0 = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), (snap) => {
             console.log("eseguo lettura amici")
             let ArraydiAmici = [];
             snap.forEach(async (elem) => {
@@ -62,6 +64,8 @@ const TabNavigator = () => {
             })
             setFriends(ArraydiAmici);
         })
+
+        listeners.current.push(unsubscribe0);
     };
 
     //Carica il context con lo state userInfo che uso in tutte la altre pagine
@@ -80,7 +84,7 @@ const TabNavigator = () => {
         /**Riempie lo state delle notifiche per mostrarle nell'apposita pagina e attende per eventuali cambiamenti */
         const collectionRef = collection(database, 'notifications', user.idDoc, 'userRequests');
         const q1 = query(collectionRef, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
-        onSnapshot(q1, snapshot => {
+        const unsubscribe1 = onSnapshot(q1, snapshot => {
             setNotifications(
                 snapshot.docs.map(doc => ({
                     requestRef: doc.data().requestRef,
@@ -94,7 +98,7 @@ const TabNavigator = () => {
 
         /**Riceve cambiamenti nelle richieste di amicizia, se l'amico accetta o rifiuta la richiesta bisogna triggerare una specifica azione */
         const q2 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted', 'denied']));
-        onSnapshot(q2, (snapDocs) => {
+        const unsubscribe2 = onSnapshot(q2, (snapDocs) => {
             snapDocs.forEach(async (snap) => {
                 if (snap.data().state === 'accepted') {
                     console.log("accepted")
@@ -114,21 +118,25 @@ const TabNavigator = () => {
         /**Riceve i cambiamenti di stato di una notifica per capire se è stata letta o meno dall'utente. Aiuta a settare il parametro
          * tabBarBadge della sezione notifiche
          */
-        const q3 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('read', '==', false));
-        onSnapshot(q3, (snapDocs) => {
-            setBadgeNotifications(snapDocs?.docs?.length);
-        })
+        const q3 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('read', '==', false),limit(100));
+        const unsubscribe3= onSnapshot(q3, (snapDocs) => {
+            setBadgeNotifications(snapDocs?.docs?.length <50 ?snapDocs?.docs?.length:'50+');
+        });
+
+        //It saves the reference to the onSnapshot listeners in order to detach them before logOut, otherwise it will generate an error
+        listeners.current.push(unsubscribe1);
+        listeners.current.push(unsubscribe2);
+        listeners.current.push(unsubscribe3);
     }
 
     //setta i listener
     useEffect(async () => {
-        console.log(auth.currentUser.uid);
         const user = await readUserInfo();
         await readFriendsFromDB(user);
         await detectNotificationsChanges(user)
         return () => { }
 
-    }, [auth.currentUser])
+    }, []);
 
     return (
         <userInformationsContext.Provider value={{
@@ -137,7 +145,8 @@ const TabNavigator = () => {
                 friends: friends,
                 setFriends: setFriends
             },
-            notifications: notifications
+            notifications: notifications,
+            listeners: listeners
         }}>
             <StatusBar />
             <Tab.Navigator initialRouteName="HomeDrawer"
@@ -176,7 +185,8 @@ const TabNavigator = () => {
                         }
                     }}
                 />*/}
-                <Tab.Screen
+
+                {/*<Tab.Screen
                     name="Start"
                     component={Start}
                     options={{
@@ -212,7 +222,7 @@ const TabNavigator = () => {
 
 
                     }}
-                />
+                />*/}
                 <Tab.Screen /*options={{headerShown:false}}*/ name="Friends" component={FriendsNavigator}
                     options={{
                         headerShown: false,

@@ -6,7 +6,7 @@ import MultiSelection from './MultiSelection';
 
 
 
-const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible, setSelectedItem }) => {
+const FriendListItem = ({ item, iconSize,iconImage, onPressIcon, MultiSelectionVisible, /*setSelectedItem*/ }) => {
     const [changeLayout, setChangeLayout] = React.useState(false);
     const [isLongPressed, setIsLongPressed] = React.useState(false) //detect if a card is pressed longly
 
@@ -25,21 +25,22 @@ const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible, setSel
     }
 
     const handleDelete = () => {
-        setSelectedItem({
+        /*setSelectedItem({
             item: item,
             action: 'delete'
-        });
+        });*/
     }
 
+    console.log("FrienListItem render")
     return (
         <View style={changeLayout ? [styles.container, { opacity: 0.5 }] : styles.container}>
-                <MultiSelection
-                    show={isLongPressed}
-                    setIsLongPressed={setIsLongPressed}
-                    visible={MultiSelectionVisible}
-                    OnDelete={handleDelete}
-                />
-            
+            {/*<MultiSelection
+                show={isLongPressed}
+                setIsLongPressed={setIsLongPressed}
+                visible={MultiSelectionVisible}
+                OnDelete={handleDelete}
+            />*/}
+
             <TouchableHighlight
                 style={isLongPressed ? [styles.TouchableHigh, changeStyleTouchable] : styles.TouchableHigh}
                 onLongPress={handleLongPress}
@@ -56,22 +57,25 @@ const FriendListItem = ({ item, icon, onPressIcon, MultiSelectionVisible, setSel
                             <Text style={styles.text}>{item.username}</Text>
                         </View>
                     </View>
-                    <View style={styles.inFlexContainer}>
-                        <TouchableOpacity
-                            style={styles.chatButton}
-                            onPress={onPress}
-                            disabled={changeLayout}
-                        >
-                            <FontAwesomeIcon icon={icon.image} size={icon.size} color='black' />
-                        </TouchableOpacity>
-                    </View>
+                    {
+                        iconImage && <View style={styles.inFlexContainer}>
+                            <TouchableOpacity
+                                style={styles.chatButton}
+                                onPress={onPress}
+                                disabled={changeLayout}
+                            >
+                                <FontAwesomeIcon icon={iconImage} size={iconSize} color='black' />
+                            </TouchableOpacity>
+                        </View>
+                    }
+
                 </View>
             </TouchableHighlight>
         </View>
     )
 }
 
-export default FriendListItem
+export default React.memo(FriendListItem)
 
 const styles = StyleSheet.create({
     container: {
@@ -119,6 +123,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e0e0e0',
         overflow: 'hidden',
-        elevation:4
+        elevation: 4
     }
 })

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebas'
 const Loading = ({ navigation }) => {
-
+    
     useEffect( () => {
         setTimeout(() => {
             const unsubscribe =  onAuthStateChanged(auth, user => {

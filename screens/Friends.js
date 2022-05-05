@@ -31,7 +31,7 @@ const Friends = () => {
     const { userInfo, friendsField } = React.useContext(userInformationsContext);
     const navigation = useNavigation();
     const [filter, setFilter] = useState('');
-    //const [friends, setFriends] = useState([]);
+    const [filteredfriends, setFilteredFriends] = useState(friendsField.friends);
     const [selectedItem, setSelectedItem] = useState() //elemento selezionato quando premo a lungo su una card, serve per aggiornare l'array di amici senza dover fare ogni volta nuove richieste
     LogBox.ignoreLogs(["Setting a timer", "AsyncStorage has been extracted from react-native core"])
 
@@ -61,6 +61,9 @@ const Friends = () => {
         })
 
     }
+    useEffect(()=>{
+        setFilteredFriends(filter?friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase())):friendsField.friends)
+    },[filter])
     
     useLayoutEffect(() => {
         if (selectedItem) {
@@ -84,17 +87,18 @@ const Friends = () => {
             <SafeAreaView style={styles.mainContent}>
                 <FlatList
                     style={styles.friendlist}
-                    data={filter?friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase())):friendsField.friends}
+                    data={filteredfriends}
                     renderItem={({ item }) => (
                         <FriendListItem
                             item={item}
-                            icon={{ image: faMessage, size: 20 }}
+                            iconImage = {faMessage}
+                            iconSize={20}
                             MultiSelectionVisible={true}
-                            setSelectedItem={setSelectedItem}
+                            //setSelectedItem={setSelectedItem}
+                            
                         />
                     )}
-                    keyExtractor={friend => friend.id}
-
+                    keyExtractor={item => item.id}
                 />
                 <View style={styles.plusContainer}>
                     <TouchableOpacity style={styles.plusButton}
