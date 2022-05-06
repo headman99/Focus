@@ -13,7 +13,7 @@ LogBox.ignoreLogs(['AsyncStorage has been extracted', 'Require cycle', 'Setting 
 const Home = () => {
   const navigation = useNavigation();
   const [filter, setFilter] = useState('');
-
+  console.log("Home")
   return (
     <View style={styles.container}>
     </View>

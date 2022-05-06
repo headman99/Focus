@@ -12,11 +12,10 @@ import Header from '../components/Header'
 
 const HomeStack = () => {
     const Stack = createNativeStackNavigator();
-    const navigation = useNavigation();
     return (
         <Stack.Navigator>
             <Stack.Screen name='Home ' component={Home}
-                options={() => ({
+                options={({navigation}) => ({
                     header: () => (
                         <Header
                             HeaderLeft={(
@@ -34,7 +33,7 @@ const HomeStack = () => {
                             HeaderRight={(
                                 <TouchableOpacity style={{ flex: 1,width:'100%', justifyContent: 'center', alignItems: 'center' }}
                                     onPress={() => {
-                                        navigation.navigate("CreateGroup")
+                                        //navigation.navigate("CreateGroup")
                                     }}
                                 >
                                     <FontAwesomeIcon icon={faPlus} size={25} />
@@ -46,13 +45,13 @@ const HomeStack = () => {
                 })}
             ></Stack.Screen>
             <Stack.Screen name='CreateGroup' component={CreateGroup}
-                options={() => ({
+                options={({}) => ({
                     header: () => (
                         <Header
                             HeaderLeft={(
                                 <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
                                     onPress={() => {
-                                        navigation.goBack()
+                                        //navigation.goBack()
                                     }}
                                 >
                                     <FontAwesomeIcon icon={faArrowLeft} size={25} />

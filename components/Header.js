@@ -2,7 +2,6 @@ import { TouchableOpacity, View, Text, StyleSheet } from 'react-native'
 import React, { memo } from 'react'
 
 const Header = ({ HeaderLeft, HeaderContent, HeaderRight }) => {
-
     console.log("header")
     return (
         <View style={styles.container}>

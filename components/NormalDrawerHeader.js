@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faGripLines } from "@fortawesome/free-solid-svg-icons";
 
 const NormalDrawerHeader = ({title,navigation}) => {
+    //console.log("Normal Header")
     return(
        <Header
         HeaderContent={(
