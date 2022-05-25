@@ -21,18 +21,10 @@ import {
 import { auth, database } from '../firebas'
 import { userInformationsContext } from '../Stacks/TabNavigator'
 import { useEffect, useLayoutEffect } from 'react'
-import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message'
 
 import FriendRequestCard from '../components/FriendRequestCard'
 import {useFocusEffect } from '@react-navigation/native'
-
-
-
-
-
-
-
 
 
 const UserRequest = () => {
@@ -59,15 +51,15 @@ const UserRequest = () => {
         },[])
     )
 
-    const acceptRequest = async (item) => { //item = notifiche n-esima. Devo accedere al mittente attraverso il campo sender (item.sender)
+    const acceptRequest = React.useCallback(async (item) => { //item = notifiche n-esima. Devo accedere al mittente attraverso il campo sender (item.sender)
         try {
             let amico;
             await runTransaction(database, async (transaction) => {
                 const senderDoc = await transaction.get(item.requestRef);
-                const friend = await transaction.get(doc(database, 'users', item.idDoc));
                 if (!senderDoc.exists()) {
                     throw "documento inesistente"
                 }
+                
                 transaction.update(item.requestRef, {
                     state: 'accepted'
                 });
@@ -75,7 +67,8 @@ const UserRequest = () => {
                 // se l'amico esiste gia tra la sua lista allora non lo aggiunge, ma accetta solo la richiesta
                 if (!friends.map(amico => amico.username).includes(item.sender)) {
                     transaction.set(doc(database, 'users', userInfo.idDoc, 'friends', item.idDoc), {
-                        friend: doc(database, 'users', item.idDoc)
+                        friend:`/users/${item.idDoc}`,
+                        date: Timestamp.now()
                     })
                     Toast.show({
                         type: 'success',
@@ -109,9 +102,9 @@ const UserRequest = () => {
             })
             return null
         }
-    }
+    },[]);
 
-    const denyRequest = async (item) => {
+    const denyRequest = React.useCallback(async (item) => {
         try {
             const batch = writeBatch(database);
             batch.update(item.requestRef, {
@@ -136,21 +129,21 @@ const UserRequest = () => {
             })
         }
 
-    }
+    },[])
 
     return (
         <View style={styles.container}>
             <View style={styles.listContainer}>
                 <FlatList
-                    data={notifications.sort((a, b) => a.createdAt - b.createdAt)}
+                    data={notifications.userRequests}
                     renderItem={({ item }) => (
                         <FriendRequestCard
                             item={item}
-                            handleAccept={() => acceptRequest(item)}
-                            handleReject={() => denyRequest(item)}
+                            handleAccept={acceptRequest}
+                            handleReject={denyRequest}
                         />
                     )}
-                    keyExtractor={(notifica, index) => index}
+                    keyExtractor={(notifica) => notifica}
                 >
                 </FlatList>
             </View>

@@ -8,8 +8,9 @@ import {
     collection,
     getDocs,
     query,
-    runTransa,
-    where
+    setDoc,
+    where,
+    doc
 } from 'firebase/firestore'
 
 const SignIn = () => {
@@ -38,9 +39,9 @@ const SignIn = () => {
                 const user = userCredentials.user;
                 console.log('Registered in with:', user.email)
                 try {
-                    await addDoc(collection(database, 'users'), {
+                    await setDoc(doc(database, 'users',auth.currentUser.uid), {
                         avatar: 'https://i.pravatar.cc/99',
-                        id: user.email,
+                        email: user.email,
                         username: username
                     });
                 } catch (error) {
@@ -98,10 +99,10 @@ const SignIn = () => {
                 <TextInput
                     style={styles.input}
                     placeholder='Email'
-                    onChangeText={text => setEmail(text)}
+                    onChangeText={text => setEmail(text.replace(' ',''))}
                 />
                 <TextInput
-                    onChangeText={text => setPassword(text)}
+                    onChangeText={text => setPassword()}
                     style={styles.input}
                     placeholder='Password'
                     secureTextEntry
@@ -109,7 +110,7 @@ const SignIn = () => {
                 <TextInput
                     style={styles.input}
                     placeholder='Username'
-                    onChangeText={text => setUsername(text)}
+                    onChangeText={text => setUsername(text.replace(' ',''))}
                     value={username}
                 />
                 <View style={styles.buttonContainer}>

@@ -14,7 +14,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import FriendListItem from '../components/FriendListItem';
 import { getUsersBySimilarUsername, getPossibleFriendsBySimilarUsername, sendFriendRequest } from '../api';
 import { database } from '../firebas';
-import { faUserPlus, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faArrowLeft, faUser } from "@fortawesome/free-solid-svg-icons";
 import {
     arrayUnion,
     doc,
@@ -40,12 +40,14 @@ import SearchHeaderBar from '../components/SearchHeaderBar';
 
 
 
+
 const NewFriendWindow = ({ navigation }) => {
     const [newFriends, setNewFriends] = useState([]);
     //const [pendingFriends, setPendingFriends] = useState([]); //oggetto {idDoc,username} degli amici in pending
     const [filter, setFilter] = useState('');
     const { userInfo, friendsField } = React.useContext(userInformationsContext);
     const [pendingFriends, setPendingFriends] = React.useState([]);
+    const [noUsersAlert, setNoUsersAlert] = React.useState(false)
 
     useEffect(async () => {
         const q = query(collection(database, 'notifications', userInfo.idDoc, 'userRequests'), where('state', '==', 'pending'));
@@ -55,6 +57,14 @@ const NewFriendWindow = ({ navigation }) => {
         setPendingFriends(array)
         return () => { }
     }, []);
+
+    useEffect(()=>{
+        if(pendingFriends.length>0){
+            newFriends.filter(item => !pendingFriends.includes(item.username))
+        }
+    },[pendingFriends.length])
+
+
 
     const onPressSendRequest = async (item) => {
         try {
@@ -109,8 +119,7 @@ const NewFriendWindow = ({ navigation }) => {
         }
 
     }
-
-
+    
     const handleFilter = async () => {
         if (filter == '') {
             setNewFriends([]);
@@ -120,15 +129,21 @@ const NewFriendWindow = ({ navigation }) => {
         const friends = friendsField.friends;
         let arrayPromises;
         if (friends?.length > 0) {
-
             arrayPromises = await getPossibleFriendsBySimilarUsername(database, filter, friends.map(friend => friend.username));
         } else {
             arrayPromises = await getUsersBySimilarUsername(database, filter);
         }
 
-        if (arrayPromises) {
+        if (arrayPromises.length > 0) {
+            if (noUsersAlert) {
+                setNoUsersAlert(false)
+            }
             let array = await Promise.all(arrayPromises);
             setNewFriends(array);
+        } else {
+            if (!noUsersAlert) {
+                setNoUsersAlert(true)
+            }
         }
 
     }
@@ -140,21 +155,29 @@ const NewFriendWindow = ({ navigation }) => {
                     setFilter={setFilter}
                     title='Search friends'
                     goBackArrow={true}
-                    handleEndEditing={handleFilter}
+                    handleEndEditing={()=> handleFilter()}
                 />
                 <View style={styles.mainContent}>
+                    {
+                        noUsersAlert &&
+                        <View style={styles.noUsersAlert}>
+                            <Text>No user with this username exists</Text>
+                        </View>
+                    }
+
                     <FlatList
                         style={styles.friendlist}
-                        data={newFriends.filter(item => !pendingFriends.includes(item.username))}
+                        data={newFriends}
                         renderItem={({ item }) => (
                             <FriendListItem
                                 item={item}
-                                icon={{ image: faUserPlus, size: 25 }}
+                                iconImage={faUserPlus}
+                                iconSize={25}
                                 onPressIcon={onPressSendRequest}
                                 MultiSelectionVisible={false}
                             />
                         )}
-                        keyExtractor={(friend) => friend.id}
+                        keyExtractor={(friend) => friend.username}
                     />
                 </View>
                 <Toast />
@@ -216,6 +239,10 @@ const styles = StyleSheet.create({
     friendlist: {
         flex: 1,
     },
-
+    noUsersAlert: {
+        flex:1,
+        justifyContent:'center',
+        alignItems:'center'
+    }
 
 })

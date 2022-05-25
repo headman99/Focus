@@ -3,6 +3,7 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faSearch, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { useNavigation } from '@react-navigation/native'
+import { theme } from '../utils'
 
 const SearchHeaderBar = ({ filter, setFilter, title, goBackArrow, handleEndEditing, leftIcon,rightIcon }) => {
     const navigation = useNavigation();
@@ -12,7 +13,7 @@ const SearchHeaderBar = ({ filter, setFilter, title, goBackArrow, handleEndEditi
                 goBackArrow && <TouchableOpacity style={styles.arrowContainer}
                     onPress={() => navigation.goBack()}
                 >
-                    <FontAwesomeIcon icon={faArrowLeft} size={30} />
+                    <FontAwesomeIcon icon={faArrowLeft} size={30} style={{color:theme.inactiveLabelColor}}/>
                 </TouchableOpacity>
             }
 
@@ -25,7 +26,7 @@ const SearchHeaderBar = ({ filter, setFilter, title, goBackArrow, handleEndEditi
             <View style={styles.content}>
                 <View style={styles.barContainer}>
                     <View style={styles.lensIcon}>
-                        <FontAwesomeIcon icon={faSearch} size={20} />
+                        <FontAwesomeIcon icon={faSearch} size={20}/>
                     </View>
                     <TextInput
                         style={styles.textInput}
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
         paddingVertical: '5%',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: theme.inactiveBackgroundColor,
         elevation:5,
         flexDirection: 'column'
     },
@@ -70,7 +71,9 @@ const styles = StyleSheet.create({
     lensIcon: {
         width: '15%',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor:'white',
+        height:50
     },
     textInput: {
         width: '85%',
@@ -80,7 +83,8 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: 'bold',
-        padding: 10
+        padding: 10,
+        color: theme.inactiveLabelColor
     },
     arrowContainer: {
         position: 'absolute',
@@ -91,5 +95,5 @@ const styles = StyleSheet.create({
     },
     icon:{
         flex:1
-    }
+    },
 })

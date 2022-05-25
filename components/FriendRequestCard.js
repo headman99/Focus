@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Image,Button } from 'react-native'
 import React, { useEffect } from 'react'
 import { getUserInformationsByUsername } from '../api'
 import { database } from '../firebas'
-
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { Timestamp } from 'firebase/firestore'
 
 
 const FriendRequestCard = ({ item, handleAccept, handleReject }) => {
@@ -13,7 +14,6 @@ const FriendRequestCard = ({ item, handleAccept, handleReject }) => {
         setuser(user)
         return () => { }
     }, [])
-
 
     return (
         <View style={styles.container}>
@@ -31,12 +31,15 @@ const FriendRequestCard = ({ item, handleAccept, handleReject }) => {
                     </View>
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity style={[styles.button, { backgroundColor: '#33a621' }]}
-                            onPress={handleAccept}
+                            onPress={()=>handleAccept(item)}
                         ><Text style={styles.textButton}>Accept</Text></TouchableOpacity>
                         <TouchableOpacity style={[styles.button, { backgroundColor: '#d6242d' }]}
-                            onPress={handleReject}
+                            onPress={()=>handleReject(item)}
                         ><Text style={styles.textButton}>Reject</Text></TouchableOpacity>
                     </View>
+                </View>
+                <View style={styles.date}>
+                     <Text style={styles.textDate}>{new Date(item.createdAt.seconds * 1000).toLocaleDateString()}</Text>
                 </View>
             </View>
             <View style={styles.separator}></View>
@@ -44,12 +47,12 @@ const FriendRequestCard = ({ item, handleAccept, handleReject }) => {
     )
 }
 
-export default FriendRequestCard
+export default React.memo(FriendRequestCard)
 
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: 150,
+        height: 120,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -112,5 +115,14 @@ const styles = StyleSheet.create({
     textButton: {
         color: 'white',
         fontWeight: 'bold'
+    },
+    date:{
+        position:'absolute',
+        right:20,
+        bottom:0,
+        //marginBottom:10
+    },
+    textDate:{
+        fontStyle:'italic'
     }
 })

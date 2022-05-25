@@ -39,7 +39,7 @@ Informazioni di un utente dato il suo indirizzo mail
 export async function getUserInformationsByMail(database, mail) {
     try {
         const collectionRef = collection(database, 'users');
-        const q = query(collectionRef, where("id", "==", mail));
+        const q = query(collectionRef, where("email", "==", mail));
         const docRef = await getDocs(q);
         const data = docRef.docs[0].data()
         return {
@@ -75,7 +75,7 @@ export async function getUserInformationsByUsername(database, username) {
 }
 
 
-export async function getUsersBySimilarUsername(database, strSearch) {
+export async function getUsersBySimilarUsername(database, strSearch) { //cerca tra tutti gli utenti quelli con nome simile alla stringa passata da input
     var strlength = strSearch.length;
     var strFrontCode = strSearch.slice(0, strlength - 1);
     var strEndCode = strSearch.slice(strlength - 1, strSearch.length);
@@ -87,7 +87,7 @@ export async function getUsersBySimilarUsername(database, strSearch) {
         const q = query(collectionRef, where("username", ">=", startcode),where("username","<" ,endcode),limit(50),where("username","!=",userInfo.data.username),orderBy("username"));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
-            id:doc.data().id,
+            email:doc.data().email,
             username: doc.data().username,
             idDoc : doc.id,
             avatar: doc.data().avatar
@@ -110,7 +110,7 @@ export async function getPossibleFriendsBySimilarUsername(database,strSearch,arr
         const q = query(collectionRef, where("username", "not-in", [...array,userInfo.data.username]),where("username", ">=", startcode),where("username","<" ,endcode),limit(50), orderBy("username"));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc =>({
-            id:doc.data().id,
+            email:doc.data().email,
             username: doc.data().username,
             idDoc : doc.id,
             avatar:doc.data().avatar

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, FlatList, SafeAreaView, TouchableOpacity, LogBox, Animated, Dimensions, StatusBar, ToastAndroid } from 'react-native'
+import { StyleSheet, Text, View, TextInput, FlatList, SafeAreaView, TouchableOpacity, LogBox, Button } from 'react-native'
 import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import {
     collection,
@@ -27,15 +27,15 @@ import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { useNavigation } from '@react-navigation/native';
 import SearchHeaderBar from '../components/SearchHeaderBar';
 
+
 const Friends = () => {
     const { userInfo, friendsField } = React.useContext(userInformationsContext);
     const navigation = useNavigation();
     const [filter, setFilter] = useState('');
     const [filteredfriends, setFilteredFriends] = useState(friendsField.friends);
-    const [selectedItem, setSelectedItem] = useState() //elemento selezionato quando premo a lungo su una card, serve per aggiornare l'array di amici senza dover fare ogni volta nuove richieste
     LogBox.ignoreLogs(["Setting a timer", "AsyncStorage has been extracted from react-native core"])
 
-    const handleDeleteItem = (item) => {
+    const deleteItem = (item) => {
         try {
             const document = doc(database, 'users', userInfo.idDoc, 'friends', item);
             deleteDoc(document)
@@ -61,59 +61,60 @@ const Friends = () => {
         })
 
     }
-    useEffect(()=>{
-        setFilteredFriends(filter?friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase())):friendsField.friends)
-    },[filter])
-    
-    useLayoutEffect(() => {
-        if (selectedItem) {
-            const { friends } = friendsField;
-            const { item, action } = selectedItem;
-            if (action == 'delete') {
-                //setFriends(friends?.filter(friend => friend.username !== item.username))
-                handleDeleteItem(item.idDoc)
-            }
+
+    useEffect(() => {
+        if (filter) {
+            setFilteredFriends(friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase())));
+        } else {
+            setFilteredFriends(friendsField?.friends)
         }
+    }, [filter])
 
-    }, [selectedItem]);
 
-    return (
-        <View style={styles.container}>
-         <SearchHeaderBar
+    const handleDeleteItem = React.useCallback((idDocItem) => {
+        deleteItem(idDocItem)
+    }, [])
+
+useLayoutEffect(() => {
+    console.log("useLayout")
+    setFilteredFriends(filter ? friendsField.friends?.filter(friend => friend.username.toUpperCase().startsWith(filter.toUpperCase())) : friendsField.friends)
+}, [friendsField.friends])
+
+return (
+    <View style={styles.container}>
+        <SearchHeaderBar
             filter={filter}
             setFilter={setFilter}
             goBackArrow={false}
-         />
-            <SafeAreaView style={styles.mainContent}>
-                <FlatList
-                    style={styles.friendlist}
-                    data={filteredfriends}
-                    renderItem={({ item }) => (
-                        <FriendListItem
-                            item={item}
-                            iconImage = {faMessage}
-                            iconSize={20}
-                            MultiSelectionVisible={true}
-                            //setSelectedItem={setSelectedItem}
-                            
-                        />
-                    )}
-                    keyExtractor={item => item.id}
-                />
-                <View style={styles.plusContainer}>
-                    <TouchableOpacity style={styles.plusButton}
-                        onPress={() => {
-                            navigation.navigate("SearchFriend")
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faPlusCircle} size={50} />
-                    </TouchableOpacity>
-                </View>
-            </SafeAreaView>
-
-            <Toast />
-        </View >
-    )
+        />
+        <SafeAreaView style={styles.mainContent}>
+            <FlatList
+                style={styles.friendlist}
+                data={filteredfriends}
+                renderItem={({ item }) => (
+                    <FriendListItem
+                        item={item}
+                        iconImage={faMessage}
+                        iconSize={20}
+                        MultiSelectionVisible={true}
+                        handleDelete={handleDeleteItem}
+                    />
+                )}
+                keyExtractor={item => item.idDoc}
+            />
+            <View style={styles.plusContainer}>
+                <TouchableOpacity style={styles.plusButton}
+                    onPress={() => {
+                        navigation.navigate("SearchFriend")
+                    }}
+                >
+                    <FontAwesomeIcon icon={faPlusCircle} size={50} />
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
+        <Toast />
+    </View >
+)
 }
 
 export default Friends

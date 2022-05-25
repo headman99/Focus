@@ -1,23 +1,17 @@
 import { StyleSheet, Text, View,TouchableHighlight,Image } from 'react-native'
-import React,{useCallback,useState,memo} from 'react'
+import React,{useCallback,useState,memo,useRef,useEffect} from 'react'
 
-const ListItemCreateGroup = ({ item, setSelectedItems }) => {
-    const [pressed, setPressed] = useState(false)
 
+const ListItemCreateGroup = ({ item, handleSelect }) => {
+    
     const handlePress = () => {
-        console.log(pressed);
-        if (!pressed) {
-            setSelectedItems((previousState) => [...previousState, item])
-        } else {
-            setSelectedItems((previousState) => previousState.filter(elem => elem.username !== item.username));
-        }
-
-        setPressed(previousState => !previousState);
+        handleSelect(item)
     }
 
+    console.log("ListItemCreateGroup render")
     return (
         <TouchableHighlight
-            style={[styles.LItouchable, pressed && { backgroundColor: '#c5e5f0' }]}
+            style={styles.LItouchable}
             onPress={handlePress}
             activeOpacity={1}
             underlayColor='#c5e5f0'

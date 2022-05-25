@@ -6,7 +6,7 @@ import MultiSelection from './MultiSelection';
 
 
 
-const FriendListItem = ({ item, iconSize,iconImage, onPressIcon, MultiSelectionVisible, /*setSelectedItem*/ }) => {
+const FriendListItem = ({ item, iconSize,iconImage, onPressIcon, MultiSelectionVisible, handleDelete }) => {
     const [changeLayout, setChangeLayout] = React.useState(false);
     const [isLongPressed, setIsLongPressed] = React.useState(false) //detect if a card is pressed longly
 
@@ -21,25 +21,18 @@ const FriendListItem = ({ item, iconSize,iconImage, onPressIcon, MultiSelectionV
     }
 
     const handleLongPress = () => {
-        setIsLongPressed(!isLongPressed)
-    }
-
-    const handleDelete = () => {
-        /*setSelectedItem({
-            item: item,
-            action: 'delete'
-        });*/
+        setIsLongPressed(previousState => !previousState)
     }
 
     console.log("FrienListItem render")
     return (
-        <View style={changeLayout ? [styles.container, { opacity: 0.5 }] : styles.container}>
-            {/*<MultiSelection
+        <View style={isLongPressed ? [styles.container, { opacity: 0.5 }] : styles.container}>
+            <MultiSelection
                 show={isLongPressed}
                 setIsLongPressed={setIsLongPressed}
                 visible={MultiSelectionVisible}
-                OnDelete={handleDelete}
-            />*/}
+                OnDelete={()=>handleDelete(item.idDoc)}
+            />
 
             <TouchableHighlight
                 style={isLongPressed ? [styles.TouchableHigh, changeStyleTouchable] : styles.TouchableHigh}
