@@ -161,12 +161,16 @@ const TabNavigator = () => {
         listeners.current.push(unsubscribe5);
     }
 
+
     const readGroups = async (user) => {
-        const unsubscribe = onSnapshot(query(collection(database, 'users', user.idDoc, 'groups')), (snapDocs) => {
+        const unsubscribe = onSnapshot(query(collection(database, 'users', user.idDoc, 'groups')), async (snapDocs) => {
                const groupsArray = [];
                snapDocs.docs.map(async (snap) =>{
                 const group = await getDoc(doc(database,'groups',snap.id));
-                groupsArray.push(group.data())
+                groupsArray.push({
+                    ...group.data(),
+                    idDoc: group.id
+                })
                })
                setGroups(groupsArray);
         })

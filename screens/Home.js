@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, LogBox,Button } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, LogBox,Button,FlatList } from 'react-native'
 import React, { useState, useLayoutEffect, useEffect,useContext } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { auth,database } from '../firebas'
@@ -22,7 +22,11 @@ const Home = () => {
       {
         <Load dependency={groups}/>
       }
-
+      <FlatList
+        data={groups}
+        renderItem={({item})=>(<Text>{item.title}</Text>)}
+        keyExtractor={(item)=>item.idDoc}
+      />
     </View>
   )
 }
