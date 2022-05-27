@@ -26,7 +26,7 @@ import {
     limit,
     orderBy
 } from 'firebase/firestore';
-import { StyleSheet, TouchableOpacity, View, Button } from 'react-native'
+import { StyleSheet, TouchableOpacity, View, Button, Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../utils';
 //import AwesomeButton from 'react-native-really-awesome-button';
@@ -60,19 +60,17 @@ const TabNavigator = () => {
 
     /**Read friends from db and detect changes */
     const readFriendsFromDB = async (userInfo) => {
-        const unsubscribe0 = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), (snap) => {
+        const unsubscribe0 = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), async (snap) => {
             console.log("eseguo lettura amici")
-            let ArraydiAmici = [];
-            snap.forEach(async (elem) => {
-                const amico = await getDoc(doc(database,'users',elem.id));
-                ArraydiAmici.push({
+            setFriends(await Promise.all(snap?.docs.map(async (elem) => {
+                const amico = await getDoc(doc(database, 'users', elem.id));
+                return ({
                     username: amico.data().username,
                     avatar: amico.data().avatar,
                     id: amico.data().id,
                     idDoc: amico.id
                 })
-            })
-            setFriends(ArraydiAmici);
+            })))
         })
 
         listeners.current.push(unsubscribe0);
@@ -161,21 +159,25 @@ const TabNavigator = () => {
         listeners.current.push(unsubscribe5);
     }
 
-
     const readGroups = async (user) => {
-        const unsubscribe = onSnapshot(query(collection(database, 'users', user.idDoc, 'groups')), async (snapDocs) => {
-               const groupsArray = [];
-               snapDocs.docs.map(async (snap) =>{
-                const group = await getDoc(doc(database,'groups',snap.id));
-                groupsArray.push({
-                    ...group.data(),
-                    idDoc: group.id
-                })
-               })
-               setGroups(groupsArray);
-        })
-
-        listeners.current.push(unsubscribe)
+        try {
+            const unsubscribe = onSnapshot(query(collection(database, 'users', user.idDoc, 'groups')), async (snapDocs) => {
+                if(snapDocs.empty){
+                    setGroups(null)
+                    return;
+                }
+                setGroups(
+                    await Promise.all(snapDocs?.docs?.map(async (documento) => ({
+                        ...(await getDoc(doc(database,'groups',documento.id))).data(),
+                        idDoc:documento.id
+                    })))
+                )
+                listeners.current.push(unsubscribe)
+            })
+        } catch (error) {
+            Alert.alert(error.message)
+            console.log("si è verificato un errore qui")
+        }
     }
 
     //setta i listener
@@ -202,7 +204,7 @@ const TabNavigator = () => {
             groups: groups
         }}>
             {/*<StatusBar />*/}
-            <Tab.Navigator initialRouteName="HomeDrawer"
+            <Tab.Navigator initialRouteName={'HomeDrawer'}
                 screenOptions={() => ({
                     tabBarInactiveBackgroundColor: theme.inactiveBackgroundColor,
                     tabBarActiveBackgroundColor: theme.activeBackgroundColor,
@@ -213,7 +215,7 @@ const TabNavigator = () => {
                     tabBarStyle: styles.tabBar,
                     headerShown: false,
                     unmountOnBlur: false,
-                    tabBarHideOnKeyboard: true
+                    tabBarHideOnKeyboard: true,
                     //tabBarVisibilityAnimationConfig:false
                 })}
             >

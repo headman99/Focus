@@ -2,9 +2,8 @@ import { StyleSheet, Text, View,ActivityIndicator,Animated } from 'react-native'
 import React,{useEffect, useRef} from 'react'
 import { theme } from '../utils'
 
-const Load = ({dependency}) => {
+const Load = ({dismiss}) => {
 const [sliding,setSliding] = React.useState(new Animated.Value(-50))
-const dismiss = React.useRef(true)
 
 const slide = (toValue)=>{
     Animated.spring(sliding,{
@@ -15,16 +14,17 @@ const slide = (toValue)=>{
 }
 
 useEffect(()=>{
-    if(dismiss.current){
+    if(dismiss){
         slide(-50)
+    }else{
+        slide(20)
     }
-    dismiss.current = false;
-},[dependency])
+},[dismiss])
 
 useEffect(()=>{
-    slide(20)
+    slide(20);
 },[])
-    
+
   return (
     <Animated.View style={[styles.container,{transform:[{translateY:sliding}]}]}>
       <ActivityIndicator size={'large'} color={theme.inactiveBackgroundColor} style={styles.activityIndicator}/>
