@@ -29,6 +29,7 @@ import {
 import { StyleSheet, TouchableOpacity, View, Button, Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../utils';
+import { NativeModules } from "react-native";
 //import AwesomeButton from 'react-native-really-awesome-button';
 
 
@@ -59,16 +60,18 @@ const TabNavigator = () => {
     }, [badgeRequests, badgeInvitations])
 
     /**Read friends from db and detect changes */
-    const readFriendsFromDB = async (userInfo) => {
-        const unsubscribe0 = onSnapshot(query(collection(database, 'users', userInfo.idDoc, 'friends')), async (snap) => {
-            console.log("eseguo lettura amici")
+    const readFriendsFromDB = async (user) => {
+        const unsubscribe0 = onSnapshot(collection(database, 'users', user.idDoc, 'friends'), async (snap) => {
+            if (snap.docs.length == 0) {
+                return
+            }
             setFriends(await Promise.all(snap?.docs.map(async (elem) => {
                 const amico = await getDoc(doc(database, 'users', elem.id));
                 return ({
                     username: amico.data().username,
                     avatar: amico.data().avatar,
                     id: amico.data().id,
-                    idDoc: amico.id
+                    idDoc: elem.id
                 })
             })))
         })
@@ -78,8 +81,8 @@ const TabNavigator = () => {
 
     //Carica il context con lo state userInfo che uso in tutte la altre pagine
     const readUserInfo = async () => {
-        const userInfo = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
-        const promiseResult = await Promise.resolve(userInfo);
+        const user = await getUserInformationsByMail(database, auth?.currentUser?.email.toString());
+        const promiseResult = await Promise.resolve(user);
         if (promiseResult)
             setUserInfo(promiseResult)
         return promiseResult;
@@ -89,103 +92,127 @@ const TabNavigator = () => {
         Detect changes in notifications for userRequests 
     */
     const detectNotificationsChanges = async (user) => {
+        try {
+            const userRequestsCollection = collection(database, 'notifications', user.idDoc, 'userRequests');
+            const q1 = query(userRequestsCollection, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
+            const unsubscribe1 = onSnapshot(q1, snapshot => {
+                setUserRequests(
+                    snapshot.docs.map(doc => ({
+                        requestRef: doc.data().requestRef,
+                        id: doc.data().id,
+                        createdAt: doc.data().createdAt,
+                        sender: doc.data().sender,
+                        idDoc: doc.id,
+                    })).sort((a, b) => a.createdAt - b.createdAt)
+                )
+            });
+
+            /*Riempie lo stato delle notifiche degli inviti per mostrarle nell'apposita pagina e attende cambiamenti*/
+            const collectionRef = collection(database, 'notifications', user.idDoc, 'invitations');
+            const q4 = query(collectionRef, limit(50), where('createdAt', '>', new Date(Date.now() - 25 * 24 * 60 * 60 * 1000))); //ordina per tempo discendente e prende tutte le notifiche pending
+            const unsubscribe4 = onSnapshot(q4, snapshot => {
+                setInvitations(
+                    snapshot.docs.map(doc => ({
+                        ...doc.data()
+                    })).sort((a, b) => a.createdAt - b.createdAt)
+                )
+            });
+
+
+            /**Riceve cambiamenti nelle richieste di amicizia, se l'amico accetta o rifiuta la richiesta bisogna triggerare una specifica azione */
+            const q2 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted', 'denied']));
+            const unsubscribe2 = onSnapshot(q2, (snapDocs) => {
+                snapDocs.forEach(async (snap) => {
+                    if (snap.data().state === 'accepted') {
+                        console.log("accepted")
+                        const batch = writeBatch(database);
+                        batch.set(doc(database, 'users', user.idDoc, 'friends', snap.id), {
+                            friend: `/users/${snap.id}`
+                        });
+
+                        batch.delete(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id));
+                        await batch.commit();
+                    } else if (snap.data().state === 'denied') {
+                        await deleteDoc(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id))
+                    }
+                })
+            });
+
+            /**Riceve i cambiamenti di stato di una notifica per capire se è stata letta o meno dall'utente. Aiuta a settare il parametro
+             * tabBarBadge della sezione notifiche
+             */
+            const q3 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('read', '==', false));
+            const unsubscribe3 = onSnapshot(q3, (snapDocs) => {
+                setBadgeRequests(snapDocs?.docs?.length);
+            });
+
+            const q5 = query(collection(database, 'notifications', user.idDoc, 'invitations'), where('read', '==', false));
+            const unsubscribe5 = onSnapshot(q5, (snapDocs) => {
+                setBadgeInvitations(snapDocs?.docs?.length);
+            });
+
+
+
+            //It saves the reference to the onSnapshot listeners in order to detach them before logOut, otherwise it will generate an error
+            listeners.current.push(unsubscribe1);
+            listeners.current.push(unsubscribe2);
+            listeners.current.push(unsubscribe3);
+            listeners.current.push(unsubscribe4);
+            listeners.current.push(unsubscribe5);
+        } catch (errore) {
+            console.log('errore certamente qui dentro')
+        }
         /**Riempie lo state delle notifiche delle richieste di amicizia per mostrarle nell'apposita pagina e attende per eventuali cambiamenti */
-        const userRequestsCollection = collection(database, 'notifications', user.idDoc, 'userRequests');
-        const q1 = query(userRequestsCollection, where('type', '==', 'received')); //ordina per tempo discendente e prende tutte le notifiche pending
-        const unsubscribe1 = onSnapshot(q1, snapshot => {
-            setUserRequests(
-                snapshot.docs.map(doc => ({
-                    requestRef: doc.data().requestRef,
-                    id: doc.data().id,
-                    createdAt: doc.data().createdAt,
-                    sender: doc.data().sender,
-                    idDoc: doc.id,
-                })).sort((a, b) => a.createdAt - b.createdAt)
-            )
-        });
 
-        /*Riempie lo stato delle notifiche degli inviti per mostrarle nell'apposita pagina e attende cambiamenti*/
-        const collectionRef = collection(database, 'notifications', user.idDoc, 'invitations');
-        const q4 = query(collectionRef, limit(50), where('createdAt', '>', new Date(Date.now() - 25 * 24 * 60 * 60 * 1000))); //ordina per tempo discendente e prende tutte le notifiche pending
-        const unsubscribe4 = onSnapshot(q4, snapshot => {
-            setInvitations(
-                snapshot.docs.map(doc => ({
-                    ...doc.data()
-                })).sort((a, b) => a.createdAt - b.createdAt)
-            )
-        });
-
-
-        /**Riceve cambiamenti nelle richieste di amicizia, se l'amico accetta o rifiuta la richiesta bisogna triggerare una specifica azione */
-        const q2 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('state', 'in', ['accepted', 'denied']));
-        const unsubscribe2 = onSnapshot(q2, (snapDocs) => {
-            snapDocs.forEach(async (snap) => {
-                if (snap.data().state === 'accepted') {
-                    console.log("accepted")
-                    const batch = writeBatch(database);
-                    batch.set(doc(database, 'users', user.idDoc, 'friends', snap.id), {
-                        friend: `/users/${snap.id}`
-                    });
-
-                    batch.delete(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id));
-                    await batch.commit();
-                } else if (snap.data().state === 'denied') {
-                    await deleteDoc(doc(database, 'notifications', user.idDoc, 'userRequests', snap.id))
-                }
-            })
-        });
-
-        /**Riceve i cambiamenti di stato di una notifica per capire se è stata letta o meno dall'utente. Aiuta a settare il parametro
-         * tabBarBadge della sezione notifiche
-         */
-        const q3 = query(collection(database, 'notifications', user.idDoc, 'userRequests'), where('read', '==', false));
-        const unsubscribe3 = onSnapshot(q3, (snapDocs) => {
-            setBadgeRequests(snapDocs?.docs?.length);
-        });
-
-        const q5 = query(collection(database, 'notifications', user.idDoc, 'invitations'), where('read', '==', false));
-        const unsubscribe5 = onSnapshot(q5, (snapDocs) => {
-            console.log("setto notifiche ba")
-            setBadgeInvitations(snapDocs?.docs?.length);
-        });
-
-
-
-        //It saves the reference to the onSnapshot listeners in order to detach them before logOut, otherwise it will generate an error
-        listeners.current.push(unsubscribe1);
-        listeners.current.push(unsubscribe2);
-        listeners.current.push(unsubscribe3);
-        listeners.current.push(unsubscribe4);
-        listeners.current.push(unsubscribe5);
     }
 
     const readGroups = async (user) => {
         try {
             const unsubscribe = onSnapshot(query(collection(database, 'users', user.idDoc, 'groups')), async (snapDocs) => {
-                if(snapDocs.empty){
-                    setGroups(null)
+                console.log('execute')
+                if (snapDocs?.docs?.length == 0) {
+                    console.log("vuoto")
                     return;
                 }
-                setGroups(
-                    await Promise.all(snapDocs?.docs?.map(async (documento) => ({
-                        ...(await getDoc(doc(database,'groups',documento.id))).data(),
-                        idDoc:documento.id
-                    })))
+                //setGroups(
+                console.log(await Promise.all(snapDocs?.docs?.map(async (documento) => {
+                    const groupsData = (await getDoc(doc(database, 'groups', documento.id))).data();
+                    return ({
+                        ...groupsData,
+                        idDoc: documento.id
+                    })
+                }))
                 )
+                //)
                 listeners.current.push(unsubscribe)
+
             })
         } catch (error) {
-            Alert.alert(error.message)
-            console.log("si è verificato un errore qui")
+            console.log("errore sta qua dentro")
         }
+
     }
 
     //setta i listener
     useEffect(async () => {
-        const user = await readUserInfo();
-        await readFriendsFromDB(user);
-        await detectNotificationsChanges(user)
-        await readGroups(user)
+        try {
+            const user = await readUserInfo();
+            await readFriendsFromDB(user);
+            await detectNotificationsChanges(user)
+            await readGroups(user)
+        } catch (errore) {
+            Alert.alert(
+                "Reboot the app",
+                errore.message,
+                [
+                    {
+                        text: "Reboot",
+                        onPress: () => NativeModules.DevSettings.reload()
+                    }
+                ]
+            )
+        }
+
         return () => { }
     }, []);
 

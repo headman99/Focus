@@ -67,7 +67,7 @@ const UserRequest = () => {
                 // se l'amico esiste gia tra la sua lista allora non lo aggiunge, ma accetta solo la richiesta
                 if (!friends.map(amico => amico.username).includes(item.sender)) {
                     transaction.set(doc(database, 'users', userInfo.idDoc, 'friends', item.idDoc), {
-                        friend:`/users/${item.idDoc}`,
+                        friend:item.idDoc,
                         date: Timestamp.now()
                     })
                     Toast.show({

@@ -23,8 +23,7 @@ const SignIn = () => {
         if (email !== '' && password !== '' && username !== '') {
             try {
                 const users = await getDocs(query(collection(database, 'users'), where('username', '==', username)));
-                console.log(users.docs.length)
-                if (users.docs.length > 0) {
+                if (users?.docs?.length>0) {
                     throw "Username already taken"
                 }
             }catch(error){
@@ -48,7 +47,7 @@ const SignIn = () => {
                     console.log('errore verificato qui 2');
                     console.log(error.message)
                     Alert.alert(
-                        "",
+                        "Sign IN",
                         "An error occurred during signIn,please try again or reload the app",
                         [
                             {
@@ -64,17 +63,9 @@ const SignIn = () => {
                         ]
                     )
                 }
-            }).catch(error => /*Alert.alert(
-                "System",
-                error.message,
-                [
-                    {
-                        text: 'cancel',
-                        onPress: () => { console.log("cancel pressed") },
-                        style: 'cancel'
-                    }
-                ]
-            )*/alert(error.message));
+            }).catch(error =>{
+                alert(error.message)
+            });
     }
 
     const handleSignUp = async() => {
@@ -82,7 +73,6 @@ const SignIn = () => {
             await verifyValidity();
         }catch(error){
             console.log('errore verificato qui 3');
-            console.log(error)
             alert(error)
             return;
         }
@@ -102,7 +92,7 @@ const SignIn = () => {
                     onChangeText={text => setEmail(text.replace(' ',''))}
                 />
                 <TextInput
-                    onChangeText={text => setPassword()}
+                    onChangeText={text => setPassword(text)}
                     style={styles.input}
                     placeholder='Password'
                     secureTextEntry
